@@ -10,13 +10,17 @@ if __name__ == '__main__':
     # Uses parameters in praw.ini
     reddit = praw.Reddit()
     
-    subreddit = Subreddit("all", 0, 0)
-    
-    user_updater = UserUpdater(reddit, subreddit)
-    user_updater.start()
-    
+    # Set the subreddit to be used
+    subreddit = Subreddit("destinythegame", 0, 0)
+
+    # Download the 10 hottest post on the chosen subreddit
     post_downloader = PostDownloader(reddit, subreddit)
     post_downloader.start()
     
-    votes_updater = VotesUpdater(reddit, subreddit)
-    votes_updater.start()
+    # Update the comments of the posts currently being tracked
+    post_updater = PostUpdater(reddit, subreddit)
+    post_updater.start()
+    
+    # Download stats on the subreddit's redditors
+    user_updater = UserUpdater(reddit, subreddit)
+    user_updater.start()
