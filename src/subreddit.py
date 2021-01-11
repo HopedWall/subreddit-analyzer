@@ -4,6 +4,7 @@ class Subreddit:
         self._visitors = visitors
         self._act_users = active_users
         self._posts = list()
+        self._users = list()
     
     def update_visitors(self, visitors):
         self._visitors = visitors
@@ -25,6 +26,12 @@ class Subreddit:
 
     def get_posts(self):
         return self._posts
+
+    def get_users(self):
+        return self._users
+
+    def add_user(self, user):
+        self._users.append(user)
 
     # Returns all the comments from all the threads in the subreddit
     def get_all_comments(self):

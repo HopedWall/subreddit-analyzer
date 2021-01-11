@@ -1,6 +1,7 @@
 from threading import Thread
 from post import Post
 from comment import Comment
+from redditor import Redditor
 import time
 import json
 from kafka import KafkaProducer
@@ -27,6 +28,7 @@ class PostDownloader(Thread):
             
             for submission in subreddit_handle.hot(limit=10):
 
+                ### POST ###
                 # Store post locally
                 post = Post(
                     submission.id,
@@ -41,13 +43,42 @@ class PostDownloader(Thread):
                     self._subreddit.append_post(post)
                     
                     # Push to kafka
-                    for post in self._subreddit.get_posts():
-                        print(post.to_dict())
-                        producer.send('threads',key=str(post.get_id()),value=post.to_dict())
+                    print(post.to_dict())
+                    producer.send('threads',key=str(post.get_id()),value=post.to_dict())
+
+                    ### AUTHOR ###
+                    # This must be here since the user must be updated (locally) only if
+                    # the post was not already inserted
+
+                    # Store author locally
+                    user = Redditor(
+                        submission.author.id,
+                        submission.author.name,
+                        submission.score)
+
+                    if not user in self._subreddit.get_users():
+                        # Add to tracked users
+                        self._subreddit.add_user(user)
+                        
+                        # Push to kafka
+                        print(user.to_dict())
+                        producer.send('users',key=str(user.get_id()),value=user.to_dict())
+                    else:
+                        # Get item from user list
+                        index = self._subreddit.get_users().index(user)
+                        old_user = self._subreddit.get_users()[index]
+                        self._subreddit.get_users().remove(old_user)
+
+                        # Add updated user
+                        old_user.add_upvotes(user.get_upvotes())
+                        self._subreddit.add_user(old_user)
+                        
+                        # Push to kafka
+                        print("UPDATE:",old_user.to_dict())
+                        producer.send('users',key=str(old_user.get_id()),value=old_user.to_dict())
                 else:
-                    ## TODO: if post already present but different number of votes
-                    ## push anyways
                     print("Post already being tracked!")
+
 
                 time.sleep(1) # 2 second not to get kicked out of the API!
                 
