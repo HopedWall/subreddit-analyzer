@@ -1,6 +1,6 @@
 import praw
 from subreddit import Subreddit
-from user_updater import UserUpdater
+from subreddit_updater import SubredditUpdater
 from post_downloader import PostDownloader
 from post_updater import PostUpdater
 
@@ -22,5 +22,5 @@ if __name__ == '__main__':
     post_updater.start()
     
     # Download stats on the subreddit's redditors
-    user_updater = UserUpdater(reddit, subreddit)
-    user_updater.start()
+    subreddit_updater = SubredditUpdater(reddit, subreddit)
+    subreddit_updater.start()

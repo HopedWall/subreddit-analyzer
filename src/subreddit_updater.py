@@ -3,7 +3,7 @@ import time
 import json
 from kafka import KafkaProducer
 
-class UserUpdater(Thread):
+class SubredditUpdater(Thread):
     def __init__(self, reddit, subreddit):
         Thread.__init__(self)
         self._reddit = reddit
