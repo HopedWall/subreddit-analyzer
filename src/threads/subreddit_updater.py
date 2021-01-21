@@ -32,7 +32,7 @@ class SubredditUpdater(Thread):
             # Push to kafka
             producer = KafkaProducer(bootstrap_servers='localhost:9092', key_serializer=lambda k: k.encode('utf-8'), value_serializer=lambda v: json.dumps(v).encode('utf-8'))
             # TODO: create another channel
-            producer.send('subreddit-data',key=str(self._subreddit.get_name()),value=data)
+            producer.send('subreddit-data', key=str(self._subreddit.get_name()), value=data)
             
             time.sleep(10) # 5 minutes of sleep
 

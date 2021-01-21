@@ -42,7 +42,7 @@ class PostUpdater(Thread):
                     if comment not in post.get_comments():
                         post.add_comment(comment)
                         print(comment.to_dict())
-                        producer.send('threads',key=str(post.get_id()), value=comment.to_dict())
+                        producer.send('threads', key=str(post.get_id()), value=comment.to_dict())
 
                         ### AUTHOR ###
                         # This must be here since the user must be updated (locally) only if
@@ -60,7 +60,7 @@ class PostUpdater(Thread):
                             
                             # Push to kafka
                             print(user.to_dict())
-                            producer.send('users',key=str(user.get_id()),value=user.to_dict())
+                            producer.send('users', key=str(user.get_id()), value=user.to_dict())
                         else:
                             
                             # Get item from user list
@@ -73,8 +73,8 @@ class PostUpdater(Thread):
                             self._subreddit.add_user(old_user)
                             
                             # Push to kafka
-                            print("UPDATE:",old_user.to_dict())
-                            producer.send('users',key=str(old_user.get_id()),value=old_user.to_dict())
+                            print("UPDATE:", old_user.to_dict())
+                            producer.send('users', key=str(old_user.get_id()), value=old_user.to_dict())
 
                     else:
                         print("Comment already being tracked")
