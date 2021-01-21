@@ -1,11 +1,12 @@
 class Post:
-    def __init__(self, id, url, author, flairs, upvotes, title):
+    def __init__(self, id, url, author, flairs, upvotes, title, text):
         self._id = id
         self._url = url
         self._author = author
         self._flairs = flairs
         self._upvotes = upvotes
         self._title = title
+        self._text = text
         self._comments = [] 
         # NOTE: posts start off with 0 comments in post_downloader, 
         # they get added by post_updater

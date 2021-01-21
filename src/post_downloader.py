@@ -36,7 +36,8 @@ class PostDownloader(Thread):
                     submission.author.name, 
                     submission.link_flair_text, 
                     str(submission.score), 
-                    submission.title)
+                    submission.title,
+                    submission.selftext)
 
                 if not post in self._subreddit.get_posts():
                     # Add to tracked posts
