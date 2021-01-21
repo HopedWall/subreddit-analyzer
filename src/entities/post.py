@@ -35,6 +35,9 @@ class Post:
     def add_comment(self, comment):
         self._comments.append(comment)
 
+    def get_text(self):
+        return self._text
+
     # Override default equal implementation
     # useful to check if post already downloaded
     def __eq__(self, other):
