@@ -45,7 +45,7 @@ class PostDownloader(Thread):
                     
                     # Push to kafka
                     print(post.to_dict())
-                    producer.send('threads',key=str(post.get_id()),value=post.to_dict())
+                    producer.send('threads', key=str(post.get_id()), value=post.to_dict())
 
                     ### AUTHOR ###
                     # This must be here since the user must be updated (locally) only if
@@ -63,7 +63,7 @@ class PostDownloader(Thread):
                         
                         # Push to kafka
                         print(user.to_dict())
-                        producer.send('users',key=str(user.get_id()),value=user.to_dict())
+                        producer.send('users', key=str(user.get_id()), value=user.to_dict())
                     else:
                         # Get item from user list
                         index = self._subreddit.get_users().index(user)
@@ -75,8 +75,8 @@ class PostDownloader(Thread):
                         self._subreddit.add_user(old_user)
                         
                         # Push to kafka
-                        print("UPDATE:",old_user.to_dict())
-                        producer.send('users',key=str(old_user.get_id()),value=old_user.to_dict())
+                        print("UPDATE:", old_user.to_dict())
+                        producer.send('users', key=str(old_user.get_id()), value=old_user.to_dict())
                 else:
                     print("Post already being tracked!")
 
