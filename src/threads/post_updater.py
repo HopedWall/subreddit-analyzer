@@ -1,6 +1,6 @@
 from threading import Thread
-from comment import Comment
-from redditor import Redditor
+from entities.comment import Comment
+from entities.redditor import Redditor
 import time
 import json
 from kafka import KafkaProducer
