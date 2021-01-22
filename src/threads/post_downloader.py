@@ -21,11 +21,6 @@ class PostDownloader(Thread):
 
             # Get the 10 hottest threads in the current subreddit
             # and push them to kafka if necessary
-
-            # Skip existing: for submission in sub.stream.submissions(skip_existing=True):
-            #for submission in sub.stream.submissions(skip_existing=True):
-            # WARN: skip_existing causes troubles!
-            
             for submission in subreddit_handle.hot(limit=10):
 
                 ### POST ###
@@ -39,46 +34,34 @@ class PostDownloader(Thread):
                     submission.title,
                     submission.selftext)
 
-                if not post in self._subreddit.get_posts():
+                postPresent = post in self._subreddit.get_posts()
+
+                if not postPresent:
                     # Add to tracked posts
                     self._subreddit.append_post(post)
-                    
-                    # Push to kafka
-                    print(post.to_dict())
-                    producer.send('threads', key=str(post.get_id()), value=post.to_dict())
 
-                    ### AUTHOR ###
-                    # This must be here since the user must be updated (locally) only if
-                    # the post was not already inserted
+                # Will send the whole post if never tracked before
+                # otherwise it will only send an update
+                producer.send('threads', key=str(post.get_id()), value=post.to_dict(postPresent))
 
-                    # Store author locally
-                    user = Redditor(
-                        submission.author.id,
-                        submission.author.name,
-                        submission.score)
+                #################################################################################
 
-                    if not user in self._subreddit.get_users():
-                        # Add to tracked users
-                        self._subreddit.add_user(user)
-                        
-                        # Push to kafka
-                        print(user.to_dict())
-                        producer.send('users', key=str(user.get_id()), value=user.to_dict())
-                    else:
-                        # Get item from user list
-                        index = self._subreddit.get_users().index(user)
-                        old_user = self._subreddit.get_users()[index]
-                        self._subreddit.get_users().remove(old_user)
+                ### AUTHOR ###
+                # Store the author of the post locally
+                user = Redditor(
+                    submission.author.id,
+                    submission.author.name,
+                    submission.score)
 
-                        # Add updated user
-                        old_user.add_upvotes(user.get_upvotes())
-                        self._subreddit.add_user(old_user)
-                        
-                        # Push to kafka
-                        print("UPDATE:", old_user.to_dict())
-                        producer.send('users', key=str(old_user.get_id()), value=old_user.to_dict())
-                else:
-                    print("Post already being tracked!")
+                userPresent = user in self._subreddit.get_users()
+
+                if not userPresent:
+                    # Add to tracked users
+                    self._subreddit.add_user(user)
+
+                # Will send the whole user if never tracked before
+                # otherwise it will only send an update
+                producer.send('threads', key=str(user.get_id()), value=user.to_dict(userPresent))
 
 
                 time.sleep(1) # 2 second not to get kicked out of the API!

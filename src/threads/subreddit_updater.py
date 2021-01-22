@@ -13,26 +13,36 @@ class SubredditUpdater(Thread):
     def run(self):
         while not self._dead:
             subreddit_handle = self._reddit.subreddit(self._subreddit.get_name())
+
+            # Push to kafka
+            producer = KafkaProducer(bootstrap_servers='localhost:9092', key_serializer=lambda k: k.encode('utf-8'), value_serializer=lambda v: json.dumps(v).encode('utf-8'))
             
-            data = dict()
-            data['type'] = 'subreddit-data'
-            
+
+            ### ACTIVE USERS ###
+             
             try:
-                self._subreddit.update_active_users(subreddit_handle.accounts_active)
-                data['active'] = subreddit_handle.accounts_active
+                # NOTE: may not be necessary?
+                # self._subreddit.update_active_users(subreddit_handle.accounts_active)
+                
+                active_users = dict()
+                active_users['value'] = subreddit_handle.accounts_active
+                producer.send('subreddit-data', key='active_users', value=active_users)
+
             except:
                 print("[WARN] This subreddit does not provide data about its active users")
 
+            ################################################################################
+
+            ### SUBSCRIBERS ###
             try:
-                self._subreddit.update_visitors(subreddit_handle.subscribers)
-                data['visitors'] = subreddit_handle.subscribers
+                # NOTE: may not be necessary?
+                #self._subreddit.update_visitors(subreddit_handle.subscribers)
+                
+                subscribers = dict()
+                subscribers['value'] = subreddit_handle.subscribers
+                producer.send('subreddit-data', key='subscribers', value=subscribers)
             except:
                 print("[WARN] This subreddit does not provide data about its subscribers")
-            
-            # Push to kafka
-            producer = KafkaProducer(bootstrap_servers='localhost:9092', key_serializer=lambda k: k.encode('utf-8'), value_serializer=lambda v: json.dumps(v).encode('utf-8'))
-            # TODO: create another channel
-            producer.send('subreddit-data', key=str(self._subreddit.get_name()), value=data)
             
             time.sleep(10) # 5 minutes of sleep
 

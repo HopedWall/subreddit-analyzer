@@ -42,15 +42,20 @@ class Post:
     # useful to check if post already downloaded
     def __eq__(self, other):
         if isinstance(other, Post):
-            return self._id == other._id and self._upvotes == other._upvotes
+            return self._id == other._id
         return False
 
-    def to_dict(self):
+    def to_dict(self, alreadyPresent=False):
         _dict = {}
-        _dict['type'] = 'post'
-        for k, v in self.__dict__.items():
-            # Do not send the comments, will be retrieved via kafka
-            if v is not None and k != '_comments':
-                _dict[k] = v
+        if not alreadyPresent:  # create a dict that represents a newly created post
+            _dict['type'] = 'post-create'
+            for k, v in self.__dict__.items():
+                # Do not send the comments, will be retrieved via kafka
+                if v is not None and k != '_comments':
+                    _dict[k] = v
+        else:   # create a dict that represents un update to an existing post
+            _dict['type'] = 'post-update'
+            _dict['id'] = self._id
+            _dict['upvotes'] = self._upvotes
         return _dict
 

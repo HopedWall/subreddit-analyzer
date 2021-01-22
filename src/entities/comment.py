@@ -28,13 +28,18 @@ class Comment:
     # useful to check if comment already downloaded
     def __eq__(self, other):
         if isinstance(other, Comment):
-            return self._id == other._id and self._upvotes == other._upvotes
+            return self._id == other._id
         return False
 
-    def to_dict(self):
+    def to_dict(self, alreadyPresent=False):
         _dict = {}
-        _dict['type'] = 'comment'
-        for k, v in self.__dict__.items():
-            if v is not None:
-                _dict[k] = v
+        if not alreadyPresent:  # create a dict that represents a newly created comment
+            _dict['type'] = 'comment-create'
+            for k, v in self.__dict__.items():
+                if v is not None:
+                    _dict[k] = v
+        else:   # create a dict that represents un update to an existing comment
+            _dict['type'] = 'comment-update'
+            _dict['id'] = self._id
+            _dict['upvotes'] = self._upvotes
         return _dict

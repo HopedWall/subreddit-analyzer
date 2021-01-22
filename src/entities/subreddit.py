@@ -1,3 +1,4 @@
+# NOTE: Only used for local storage!
 class Subreddit:
     def __init__(self, name, visitors, active_users):
         self._name = name
