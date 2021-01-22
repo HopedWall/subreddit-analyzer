@@ -2,7 +2,7 @@ class Redditor:
     def __init__(self, id, username, upvotes):
         self._id = id
         self._username = username
-        self._total_upvotes = upvotes
+        self._upvotes = upvotes
 
     def add_upvotes(self, upvotes):
         self._total_upvotes += upvotes
@@ -30,5 +30,5 @@ class Redditor:
         else:   # create a dict that represents un update to an existing redditor
             _dict['type'] = 'user-update'
             _dict['id'] = self._id
-            _dict['total_upvotes'] = self._total_upvotes
+            _dict['upvotes'] = self._upvotes
         return _dict

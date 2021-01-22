@@ -25,7 +25,9 @@ class SubredditUpdater(Thread):
                 # self._subreddit.update_active_users(subreddit_handle.accounts_active)
                 
                 active_users = dict()
+                active_users['type'] = 'active_users' # maybe unnecessary
                 active_users['value'] = subreddit_handle.accounts_active
+                print(active_users)
                 producer.send('subreddit-data', key='active_users', value=active_users)
 
             except:
@@ -39,7 +41,9 @@ class SubredditUpdater(Thread):
                 #self._subreddit.update_visitors(subreddit_handle.subscribers)
                 
                 subscribers = dict()
+                subscribers['type'] = 'subscribers' # maybe unnecessary
                 subscribers['value'] = subreddit_handle.subscribers
+                print(subscribers)
                 producer.send('subreddit-data', key='subscribers', value=subscribers)
             except:
                 print("[WARN] This subreddit does not provide data about its subscribers")

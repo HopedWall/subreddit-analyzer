@@ -29,11 +29,13 @@ class PostUpdater(Thread):
                 post.num_comments = len(comments_handle)
                 
                 comments_list = list()
-                for comment in comments_handle.list(): # NOTE: .list needed as otherwise only top level comments
+                #for comment in comments_handle.list(): # NOTE: .list needed as otherwise only top level comments
+                for comment in comments_handle:
                     try:
-                        comments_list.append(Comment(comment.id, comment.body, str(comment.score), comment.author.id, post.get_id()))
-                    except:
+                        comments_list.append(Comment(comment.id, comment.body, str(comment.score), comment.author.id, comment.author.name, post.get_id()))
+                    except Exception as e:
                         print("[WARN] Couldn't get comment")
+                        print("[WARN]", e)
 
                 # Push to kafka
                 for comment in comments_list:
@@ -48,6 +50,7 @@ class PostUpdater(Thread):
 
                     # Will send the whole post if never tracked before
                     # otherwise it will only send an update
+                    print(comment.to_dict(commentPresent))
                     producer.send('threads', key=str(post.get_id()), value=comment.to_dict(commentPresent))
 
                     #######################################################################################
@@ -55,9 +58,9 @@ class PostUpdater(Thread):
                     ### AUTHOR ###
                     # Store author locally
                     user = Redditor(
-                       comment.author.id,
-                       comment.author.name,
-                       comment.score)
+                       comment.get_author_id(),
+                       comment.get_author_name(),
+                       comment.get_upvotes())
 
                     userPresent = user in self._subreddit.get_users()
 
@@ -65,9 +68,11 @@ class PostUpdater(Thread):
                         # Add to tracked users
                         self._subreddit.add_user(user)
 
+
                     # Will send the whole user if never tracked before
                     # otherwise it will only send an update
-                    producer.send('threads', key=str(user.get_id()), value=user.to_dict(userPresent))
+                    print(user.to_dict(userPresent))
+                    producer.send('users', key=str(user.get_id()), value=user.to_dict(userPresent))
 
                 time.sleep(2)
 

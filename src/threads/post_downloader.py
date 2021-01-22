@@ -42,6 +42,7 @@ class PostDownloader(Thread):
 
                 # Will send the whole post if never tracked before
                 # otherwise it will only send an update
+                print(post.to_dict(postPresent))
                 producer.send('threads', key=str(post.get_id()), value=post.to_dict(postPresent))
 
                 #################################################################################
@@ -61,7 +62,8 @@ class PostDownloader(Thread):
 
                 # Will send the whole user if never tracked before
                 # otherwise it will only send an update
-                producer.send('threads', key=str(user.get_id()), value=user.to_dict(userPresent))
+                print(user.to_dict(userPresent))
+                producer.send('users', key=str(user.get_id()), value=user.to_dict(userPresent))
 
 
                 time.sleep(1) # 2 second not to get kicked out of the API!

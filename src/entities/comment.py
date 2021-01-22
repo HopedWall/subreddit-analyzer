@@ -1,9 +1,10 @@
 class Comment:
-    def __init__(self, id, text, upvotes, author, thread_id):
+    def __init__(self, id, text, upvotes, author_id, author_name, thread_id):
         self._id = id
         self._text = text
         self._upvotes = upvotes
-        self._author = author
+        self._author_id = author_id
+        self._author_name = author_name
         self._thread_id = thread_id
     
     def update_votes(self, upvotes):
@@ -18,8 +19,11 @@ class Comment:
     def get_upvotes(self):
         return self._upvotes
 
-    def get_author(self):
-    	return self._author
+    def get_author_id(self):
+    	return self._author_id
+
+    def get_author_name(self):
+        return self._author_name
 
     def get_thread_id(self):
         return self._thread_id
