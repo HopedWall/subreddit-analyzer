@@ -14,12 +14,12 @@ import java.util.List;
 import java.util.Properties;
 
 @Slf4j
-public class Consumer {
+public class UsersTopicConsumer {
     public static void main(String[] args) throws JSONException {
-        Logger logger = LoggerFactory.getLogger(Consumer.class);
+        Logger logger = LoggerFactory.getLogger(UsersTopicConsumer.class);
         String bootstrapServers = "127.0.0.1:9092";
         String grp_id = "consumer_app";
-        List<String> topics = Collections.singletonList("threads");
+        List<String> topics = Collections.singletonList("users");
         MessageHandler messageHandler = new MessageHandler();
 
         //Creating consumer properties  
@@ -36,7 +36,7 @@ public class Consumer {
         //Subscribing
         consumer.subscribe(topics);
 
-        System.out.println("##### CONSUMER ON TOPIC [THREADS] STARTED #####");
+        System.out.println("##### CONSUMER ON TOPIC [USERS] STARTED #####");
 
         //polling
         while (true) {

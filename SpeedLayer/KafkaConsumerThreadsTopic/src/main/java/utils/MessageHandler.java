@@ -18,7 +18,7 @@ public class MessageHandler {
     String connectionString = "mongodb://127.0.0.1:27017/";
     MongoClient mongoClient;
     MongoDatabase db;
-    MongoCollection<Document> postCollection, commentCollection;
+    MongoCollection<Document> postCollection;
 
 
     public MessageHandler() {
