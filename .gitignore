@@ -1,4 +1,4 @@
 praw.ini
-src/__pycache__/
-src/entities/__pycache__/
-src/threads/__pycache__/
+Scyper/src/__pycache__/
+Scryper/src/entities/__pycache__/
+Scryper/src/threads/__pycache__/
