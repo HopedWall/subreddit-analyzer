@@ -34,6 +34,54 @@ class Subreddit:
     def add_user(self, user):
         self._users.append(user)
 
+    
+    def get_post(self, post):
+        if post in self._posts:
+            pos = self._posts.index(post)
+            return self._posts[pos]
+        else:
+            return None
+
+    def delete_post(self, post):
+        self._posts.remove(post)
+
+    def update_post(self, oldPost, newPost):
+        # Removes the OLD version of the post
+        self.delete_post(oldPost)
+        # Gets old post comments
+        oldComments = oldPost.get_comments()
+        # Sets the comments on the new post
+        newPost.set_comments(oldComments)
+        # Adds the NEW version of the post
+        self.append_post(newPost)
+
+    def append_post(self, post):
+        self._posts.append(post)
+
+    def get_user(self, user):
+        if user in self._users:
+            pos = self._users.index(user)
+            return self._users[pos]
+        else:
+            return None
+
+    def delete_user(self, user):
+        self._users.remove(user)
+
+    def update_user(self, oldUser, newUser):
+        # Removes the OLD version of the post
+        self.delete_user(oldUser)
+        # Gets the old user upvotes
+        oldUpvotes = oldUser.get_upvotes()
+        # Update upvotes count for new user
+        # TODO: check this carefully!!!!
+        newUser.add_upvotes(oldUpvotes)
+        # Adds the NEW version of the post
+        self.append_user(newUser)
+
+    def append_user(self, user):
+        self._users.append(user)
+
     # Returns all the comments from all the threads in the subreddit
     def get_all_comments(self):
         comments = list()

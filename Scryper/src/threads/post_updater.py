@@ -46,12 +46,23 @@ class PostUpdater(Thread):
 
                     if not commentPresent:
                         # Add to tracked comments
-                        post.add_comment(comment)
+                        post.append_comment(comment)
+                        # Send new comment to kafka
+                        print(comment.to_dict(commentPresent))
+                        producer.send('threads', key=str(post.get_id()), value=comment.to_dict_new())
 
-                    # Will send the whole post if never tracked before
-                    # otherwise it will only send an update
-                    print(comment.to_dict(commentPresent))
-                    producer.send('threads', key=str(post.get_id()), value=comment.to_dict(commentPresent))
+                    else:
+                        # Get last post update
+                        lastCommentUpdate = post.get_comment(comment)
+                        # Only push to kafka if upvotes have changed
+                        commentNotUpdated = comment.get_upvotes() != lastCommentUpdate.get_upvotes()
+                        
+                        if commentNotUpdated: 
+                            # Update local post
+                            post.update_comment(lastCommentUpdate, comment)
+                            # Send updated post to kafka
+                            print(comment.to_dict(commentPresent))
+                            producer.send('threads', key=str(post.get_id()), value=comment.to_dict_update())
 
                     #######################################################################################
 
@@ -67,12 +78,21 @@ class PostUpdater(Thread):
                     if not userPresent:
                         # Add to tracked users
                         self._subreddit.add_user(user)
-
-
-                    # Will send the whole user if never tracked before
-                    # otherwise it will only send an update
-                    print(user.to_dict(userPresent))
-                    producer.send('users', key=str(user.get_id()), value=user.to_dict(userPresent))
+                        # Send new user to kafka
+                        print(user.to_dict(userPresent))
+                        producer.send('users', key=str(user.get_id()), value=user.to_dict_new())
+                    else:
+                        # Get last user update
+                        lastUserUpdate = self._subreddit.get_user(user)
+                        # Only push to kafka if upvotes have changed
+                        userNotUpdated = user.get_upvotes() != lastUserUpdate.get_upvotes()
+                        
+                        if userNotUpdated: 
+                            # Update local user
+                            self._subreddit.update_user(lastUserUpdate, user)
+                            # Send updated user to kafka
+                            print(user.to_dict(userPresent))
+                            producer.send('users', key=str(user.get_id()), value=user.to_dict_update())
 
                 time.sleep(2)
 

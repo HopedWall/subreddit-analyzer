@@ -32,8 +32,31 @@ class Post:
     def get_comments(self):
         return self._comments
 
-    def add_comment(self, comment):
+    def append_comment(self, comment):
         self._comments.append(comment)
+
+    def set_comments(self, otherComments):
+        self._comments = otherComments
+
+    def delete_comment(self, comment):
+        self._comments.remove(comment)
+
+    def get_comment(self, comment):
+        if comment in self._comments:
+            pos = self._comments.index(comment)
+            return self._comments[pos]
+        else:
+            return None
+
+    def update_comment(self, oldComment, newComment):
+        # Removes the OLD version of the comment
+        self.delete_comment(oldComment)
+        # Gets the upvotes of the old comment
+        oldUpvotes = oldComment.get_upvotes()
+        # Updates the upvotes of the new comment
+        newComment.add_upvotes(oldUpvotes)
+        # Adds the NEW version of the comment
+        self.append_comment(newComment)
 
     def get_text(self):
         return self._text
@@ -58,4 +81,11 @@ class Post:
             _dict['id'] = self._id
             _dict['upvotes'] = self._upvotes
         return _dict
+
+    def to_dict_new(self):
+        self.to_dict(alreadyPresent=False)
+
+    def to_dict_update(self):
+        self.to_dict(alreadyPresent=True)
+
 

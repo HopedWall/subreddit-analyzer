@@ -48,7 +48,7 @@ class SubredditUpdater(Thread):
             except:
                 print("[WARN] This subreddit does not provide data about its subscribers")
             
-            time.sleep(10) # 5 minutes of sleep
+            time.sleep(100) # 5 minutes of sleep
 
     def stop(self):
         self._dead = True

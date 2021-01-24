@@ -9,6 +9,9 @@ class Comment:
     
     def update_votes(self, upvotes):
         self._upvotes = upvotes
+
+    def add_upvotes(self, upvotes):
+        self._upvotes = str(int(upvotes) + int(self._upvotes))
         
     def get_id(self):
         return self._id
@@ -47,3 +50,10 @@ class Comment:
             _dict['id'] = self._id
             _dict['upvotes'] = self._upvotes
         return _dict
+
+    def to_dict_new(self):
+        return self.to_dict(alreadyPresent=False)
+
+    def to_dict_update(self):
+        return self.to_dict(alreadyPresent=True)
+

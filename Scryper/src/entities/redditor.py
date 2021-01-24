@@ -5,10 +5,10 @@ class Redditor:
         self._upvotes = upvotes
 
     def add_upvotes(self, upvotes):
-        self._total_upvotes += upvotes
+        self._upvotes = str(int(upvotes) + int(self._upvotes))
 
     def get_upvotes(self):
-        return self._total_upvotes
+        return self._upvotes
 
     def get_id(self):
         return self._id
@@ -32,3 +32,9 @@ class Redditor:
             _dict['id'] = self._id
             _dict['upvotes'] = self._upvotes
         return _dict
+
+    def to_dict_new(self):
+        self.to_dict(alreadyPresent=False)
+
+    def to_dict_update(self):
+        self.to_dict(alreadyPresent=True)
