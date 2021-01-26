@@ -34,7 +34,7 @@ class Redditor:
         return _dict
 
     def to_dict_new(self):
-        self.to_dict(alreadyPresent=False)
+        return self.to_dict(alreadyPresent=False)
 
     def to_dict_update(self):
-        self.to_dict(alreadyPresent=True)
+        return self.to_dict(alreadyPresent=True)
