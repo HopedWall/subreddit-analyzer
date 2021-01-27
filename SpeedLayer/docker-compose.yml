@@ -40,7 +40,7 @@ services:
       ELASTICSEARCH_HOSTS: http://elastic-search:9200
 
 networks: 
-  elatic-stack:
+  elastic-stack:
     driver: bridge
 
 volumes:
