@@ -1,5 +1,8 @@
 package it.unimib.lsdm.subredditanalyzer.KafkaSubredditDataConsumer.handler;
 
+import com.vader.sentiment.analyzer.SentimentAnalyzer;
+import edu.stanford.nlp.simple.Document;
+import edu.stanford.nlp.simple.Sentence;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
@@ -15,18 +18,31 @@ import org.springframework.data.elasticsearch.client.ClientConfiguration;
 import org.springframework.data.elasticsearch.client.RestClients;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 public class MessageHandlerThreadsData {
     private final RestHighLevelClient client;
     private final String index = "threads-data-json";
+    private Set<String> stopWords;
 
     public MessageHandlerThreadsData() throws IOException {
         ClientConfiguration clientConfiguration =
                 ClientConfiguration.builder().connectedTo("localhost:9200").build();
         System.out.println(clientConfiguration);
         client = RestClients.create(clientConfiguration).rest();
+        stopWords = new LinkedHashSet<String>();
+        BufferedReader SW= new BufferedReader(new FileReader("utility/stopwords-en.txt"));
+        for(String line; (line = SW.readLine()) != null;)
+            stopWords.add(line.trim());
+        SW.close();
     }
 
     public void processMessage(String key, JSONObject message) throws JSONException, IOException {
@@ -39,7 +55,7 @@ public class MessageHandlerThreadsData {
         switch (message.get("type").toString()) {
             case "post-create":
                 // Removed fields
-                message.remove("_text");
+                String text = message.remove("_text").toString();
                 message.remove("type");
                 message.remove("_id");
 
@@ -57,6 +73,10 @@ public class MessageHandlerThreadsData {
 
                 // Added new field for comment count
                 message.put("comment_num", 0);
+
+                // Get sentiment for post text.
+                String label = preprocessTextAndSentiment(text);
+                message.put("sentiment", label);
 
                 System.out.println("New post: " + key);
 
@@ -116,5 +136,34 @@ public class MessageHandlerThreadsData {
                 break;
         }
 
+    }
+
+    private String preprocessTextAndSentiment(String text) throws IOException {
+        float globalCompound = 0;
+        Document doc = new Document(text);// Create document from text.
+
+        // 1) Split text in sentence (Splitting)
+        for (Sentence sentence : doc.sentences()) {  // Will iterate over sentences in document
+            //System.out.println("SENTENCE TO CLEAN: " + sentence);
+
+            // 2) Remove stopwords (Tokenization + Cleaning)
+            Stream<String> cleanedStream = sentence.words().stream().filter(word -> !stopWords.contains(word));
+            String cleanedSentence = cleanedStream.collect(Collectors.joining(" "));
+
+            //System.out.println("CLEANED SENTENCE: " + cleanedSentence);
+
+            // 3) Sentiment for each sentence (Sentiment)
+            SentimentAnalyzer sentimentAnalyzer = new SentimentAnalyzer(cleanedSentence);
+            sentimentAnalyzer.analyze();
+
+            //System.out.println("====> SENTIMENT: " + sentimentAnalyzer.getPolarity());
+
+            // 4) Sum of compounds (Global sentiment)
+            globalCompound += Float.parseFloat(sentimentAnalyzer.getPolarity().get("compound").toString());
+
+            //System.out.println("############# END SENTENCE ##############");
+        }
+        System.out.println("TOTAL COMPOUND: " + globalCompound);
+        return globalCompound >= 0.0 ? "pos" : "neg";
     }
 }
