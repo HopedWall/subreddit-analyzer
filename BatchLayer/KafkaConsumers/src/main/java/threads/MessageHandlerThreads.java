@@ -5,12 +5,22 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.vader.sentiment.analyzer.SentimentAnalyzer;
+import edu.stanford.nlp.simple.*;
 import org.bson.Document;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MessageHandlerThreads {
 
@@ -18,16 +28,54 @@ public class MessageHandlerThreads {
     MongoClient mongoClient;
     MongoDatabase db;
     MongoCollection<Document> postCollection;
+    private Set<String> stopWords;
 
 
-    public MessageHandlerThreads() {
+    public MessageHandlerThreads() throws IOException {
         //System.out.println(connectionString);
         mongoClient = MongoClients.create(connectionString);
         db = mongoClient.getDatabase("reddit_data");
         postCollection = db.getCollection("post_collection");
+        stopWords = new LinkedHashSet<String>();
+        BufferedReader SW= new BufferedReader(new FileReader("utility/stopwords-en.txt"));
+        for(String line; (line = SW.readLine()) != null;)
+            stopWords.add(line.trim());
+        SW.close();
     }
 
-    public void processMessage(String key, JSONObject message) throws JSONException {
+    private String preprocessTextAndSentiment(String text) throws IOException {
+        float globalCompound = 0;
+        //Document doc = new Document(text);// Create document from text.
+
+        edu.stanford.nlp.simple.Document doc = new edu.stanford.nlp.simple.Document(text);
+
+        // 1) Split text in sentence (Splitting)
+        for (Sentence sentence : doc.sentences()) {  // Will iterate over sentences in document
+            //System.out.println("SENTENCE TO CLEAN: " + sentence);
+
+            // 2) Remove stopwords (Tokenization + Cleaning)
+            Stream<String> cleanedStream = sentence.words().stream().filter(word -> !stopWords.contains(word));
+            String cleanedSentence = cleanedStream.collect(Collectors.joining(" "));
+
+            //System.out.println("CLEANED SENTENCE: " + cleanedSentence);
+
+            // 3) Sentiment for each sentence (Sentiment)
+            SentimentAnalyzer sentimentAnalyzer = new SentimentAnalyzer(cleanedSentence);
+            sentimentAnalyzer.analyze();
+
+            //System.out.println("====> SENTIMENT: " + sentimentAnalyzer.getPolarity());
+
+            // 4) Sum of compounds (Global sentiment)
+            globalCompound += Float.parseFloat(sentimentAnalyzer.getPolarity().get("compound").toString());
+
+            //System.out.println("############# END SENTENCE ##############");
+        }
+        System.out.println("TOTAL COMPOUND: " + globalCompound);
+        return globalCompound >= 0.0 ? "pos" : "neg";
+    }
+
+
+    public void processMessage(String key, JSONObject message) throws JSONException, IOException {
         Document document = Document.parse(message.toString());
         System.out.println("Type: " + message.get("type"));
 
@@ -39,14 +87,22 @@ public class MessageHandlerThreads {
                     //document.remove("type");
                     // Added comments field to add embedded comment related to post.
                     document.append("comments", new ArrayList<Document>());
+
+                    // Add sentiment
+                    String polarity = preprocessTextAndSentiment(message.get("_text").toString());
+                    document.put("polarity", polarity);
+
                     System.out.println(document);
                     postCollection.insertOne(document);
                 }
                 break;
             case "comment-create":
                 // Remove text from document
-                // document.remove("_text");
-                //document.remove("type");
+
+                // Add sentiment
+                String polarity = preprocessTextAndSentiment(message.get("_text").toString());
+                document.put("polarity", polarity);
+
                 // Get post with the key id of comment --> result with one record
                 Document retrieved = postCollection.find(Filters.eq("id", key)).first();
                 if (retrieved != null) {
@@ -65,6 +121,8 @@ public class MessageHandlerThreads {
                 old.remove("_id");
                 old.put("_upvotes", message.get("upvotes"));
                 old.put("timestamp", message.get("timestamp"));
+
+                // Sentiment not necessary since should be the same
 
                 Document doc = Document.parse(old.toString());
 

@@ -21,12 +21,16 @@ import java.util.TimeZone;
 @Slf4j
 public class ConsumerSubredditDataTopic {
 
-    public void extractFromKafka() throws JSONException {
-        Logger logger = LoggerFactory.getLogger(ConsumerSubredditDataTopic.class);
+    Logger logger;
+    MessageHandlerSubredditData messageHandler;
+    KafkaConsumer<String,String> consumer;
+
+    public ConsumerSubredditDataTopic() {
+        logger = LoggerFactory.getLogger(ConsumerSubredditDataTopic.class);
         String bootstrapServers = "127.0.0.1:9092";
         String grp_id = "consumer_app";
         List<String> topics = Collections.singletonList("subreddit-data");
-        MessageHandlerSubredditData messageHandler = new MessageHandlerSubredditData();
+        messageHandler = new MessageHandlerSubredditData();
 
         //Creating consumer properties
         Properties properties=new Properties();
@@ -37,11 +41,13 @@ public class ConsumerSubredditDataTopic {
         properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         //creating consumer
-        KafkaConsumer<String,String> consumer= new KafkaConsumer<>(properties);
+        consumer= new KafkaConsumer<>(properties);
 
         //Subscribing
         consumer.subscribe(topics);
+    }
 
+    public void extractFromKafka() throws JSONException {
         System.out.println("##### CONSUMER ON TOPIC [SUBREDDIT-DATA] STARTED #####");
 
         //polling

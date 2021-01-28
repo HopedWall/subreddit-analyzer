@@ -4,8 +4,8 @@ public class ThreadConsumerThreads extends Thread {
     Thread t;
 
     public void run() {
-        ConsumerThreadsTopic c1 = new ConsumerThreadsTopic();
         try{
+            ConsumerThreadsTopic c1 = new ConsumerThreadsTopic();
             c1.extractFromKafka();
         } catch (Exception e) {
         }

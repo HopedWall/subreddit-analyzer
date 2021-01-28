@@ -22,6 +22,11 @@
             <version>1.7.12</version>
         </dependency>
         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.12</version>
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>RELEASE</version>
@@ -38,6 +43,18 @@
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
             <version>3.12.7</version>
+        </dependency>
+        <!-- Vader -->
+        <dependency>
+            <groupId>com.github.apanimesh061</groupId>
+            <artifactId>vader-sentiment-analyzer</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <!-- CoreNLP: https://mvnrepository.com/artifact/edu.stanford.nlp/stanford-corenlp -->
+        <dependency>
+            <groupId>edu.stanford.nlp</groupId>
+            <artifactId>stanford-corenlp</artifactId>
+            <version>4.2.0</version>
         </dependency>
     </dependencies>
 

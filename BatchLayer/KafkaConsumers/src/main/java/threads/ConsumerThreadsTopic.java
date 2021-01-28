@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -21,14 +22,18 @@ import java.util.TimeZone;
 @Slf4j
 public class ConsumerThreadsTopic {
 
-    public void extractFromKafka() throws JSONException {
-        Logger logger = LoggerFactory.getLogger(ConsumerThreadsTopic.class);
+    Logger logger;
+    MessageHandlerThreads messageHandler;
+    KafkaConsumer<String,String> consumer;
+
+    public ConsumerThreadsTopic() throws IOException {
+        logger = LoggerFactory.getLogger(ConsumerThreadsTopic.class);
         String bootstrapServers = "127.0.0.1:9092";
         String grp_id = "consumer_app";
         List<String> topics = Collections.singletonList("threads");
-        MessageHandlerThreads messageHandler = new MessageHandlerThreads();
+        messageHandler = new MessageHandlerThreads();
 
-        //Creating consumer properties  
+        //Creating consumer properties
         Properties properties=new Properties();
         properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -37,10 +42,13 @@ public class ConsumerThreadsTopic {
         properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         //creating consumer
-        KafkaConsumer<String,String> consumer= new KafkaConsumer<>(properties);
+        consumer= new KafkaConsumer<>(properties);
 
         //Subscribing
         consumer.subscribe(topics);
+    }
+
+    public void extractFromKafka() throws JSONException {
 
         System.out.println("##### CONSUMER ON TOPIC [THREADS] STARTED #####");
 
@@ -76,7 +84,7 @@ public class ConsumerThreadsTopic {
                     //logger.info("Key: " + message.get("_id"));
                     //logger.info("Type: " + message.get("type"));
                     messageHandler.processMessage(record.key(), message);
-                } catch (JSONException e) {
+                } catch (JSONException | IOException e) {
                     e.printStackTrace();
                 }
             });
