@@ -3,3 +3,4 @@ Scyper/src/__pycache__/
 Scryper/src/entities/__pycache__/
 Scryper/src/threads/__pycache__/
 SpeedLayer/KafkaSubredditDataConsumer/target/
+BatchLayer/KafkaConsumers/target/
