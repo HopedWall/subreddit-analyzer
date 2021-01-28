@@ -10,6 +10,8 @@ Requires Apache Kafka and Zookeper, this Docker image (https://hub.docker.com/r/
 - Consumer for kafka topics and kibana dashboard based on elasticsearch.
 - First: docker-compose up
 - Go to http://localhost:5601 (kibana).
+- First import data with correct datetime zone
+    - Go to left option bar > Stack Management > Advanced Settings > Timezone for date formatting > Set to Defaut (browser) > Reload page and check on discover sidebar menu that data are available. 
     - Go to left option bar > Stack Management > Advanced Settings > Timezone for date formatting > Set to UTC.
 - For import kibana objects:
     - Go to left option bar > Stack Management > Advanced Settings > Saved Objects > Import file
