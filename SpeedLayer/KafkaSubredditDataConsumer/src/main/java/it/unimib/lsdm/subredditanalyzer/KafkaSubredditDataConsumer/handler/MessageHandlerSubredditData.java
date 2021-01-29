@@ -1,5 +1,6 @@
 package it.unimib.lsdm.subredditanalyzer.KafkaSubredditDataConsumer.handler;
 
+import it.unimib.lsdm.subredditanalyzer.KafkaSubredditDataConsumer.utils.Properties;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -18,8 +19,9 @@ public class MessageHandlerSubredditData {
     private final RestHighLevelClient client;
 
     public MessageHandlerSubredditData() {
+        String url = Properties.getElasticUrl() + ":9200";
         ClientConfiguration clientConfiguration =
-                ClientConfiguration.builder().connectedTo("localhost:9200").build();
+                ClientConfiguration.builder().connectedTo(url).build();
         System.out.println(clientConfiguration);
         client = RestClients.create(clientConfiguration).rest();
     }

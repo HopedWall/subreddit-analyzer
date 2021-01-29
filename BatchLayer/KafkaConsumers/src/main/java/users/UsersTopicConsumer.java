@@ -27,7 +27,7 @@ public class UsersTopicConsumer {
 
     public UsersTopicConsumer() {
         logger = LoggerFactory.getLogger(UsersTopicConsumer.class);
-        String bootstrapServers = "127.0.0.1:9092";
+        String bootstrapServers = utils.Properties.getUrlKafka()+":9092";
         String grp_id = "consumer_app";
         List<String> topics = Collections.singletonList("users");
         messageHandler = new MessageHandlerUsers();

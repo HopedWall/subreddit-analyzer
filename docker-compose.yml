@@ -4,11 +4,15 @@ services:
     image: johnnypark/kafka-zookeeper
     container_name: kafka
     environment: 
-      ADVERTISED_HOST: 127.0.0.1
+      #ADVERTISED_HOST: 127.0.0.1
       NUM_PARTITIONS: 10
     ports:
       - "2181:2181"
       - "9092:9092"
+    networks:
+      - speed-net
+      - batch-net
+      - scryper-net
     restart: unless-stopped
 
   elastic-search:
@@ -18,7 +22,7 @@ services:
       - "9200:9200"
       - "9300:9300"
     networks: 
-      - elastic-stack
+      - elastic-stack-net
     restart: unless-stopped
     environment:
       discovery.type: single-node
@@ -31,7 +35,7 @@ services:
     ports:
       - "5601:5601"
     networks: 
-      - elastic-stack
+      - elastic-stack-net
     restart: unless-stopped
     depends_on:
       - elastic-search
@@ -53,10 +57,58 @@ services:
     volumes:
       - mongodb_data_container:/data/db
 
-networks: 
-  elastic-stack:
+  scryper:
+    build:
+      context: ./Scryper
+    container_name: scryper
+    networks:
+      - scryper-net
+    restart: unless-stopped
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CONTAINER: kafka
+
+  batch-consumer:
+    build:
+      context: ./BatchLayer/KafkaConsumers
+    container_name: batch-consumer
+    networks:
+      - batch-net
+      - mongo-net
+    restart: unless-stopped
+    depends_on:
+      - kafka
+      - mongo
+    environment:
+      KAFKA_CONTAINER: kafka
+      MONGO_CONTAINER: mongo
+
+  speed-consumer:
+    build:
+      context: ./SpeedLayer/KafkaSubredditDataConsumer
+    container_name: speed-consumer
+    networks:
+      - speed-net
+      - elastic-stack-net
+    restart: unless-stopped
+    depends_on:
+      - kafka
+      - elastic-search
+    environment:
+      ELASTICSEARCH_CONTAINER: elastic-search
+      KAFKA_CONTAINER: kafka
+
+networks:
+  elastic-stack-net:
     driver: bridge
   mongo-net:
+    driver: bridge
+  speed-net:
+    driver: bridge
+  batch-net:
+    driver: bridge
+  scryper-net:
     driver: bridge
 
 volumes:

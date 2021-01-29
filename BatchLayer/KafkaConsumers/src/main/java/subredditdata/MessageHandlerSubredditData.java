@@ -7,10 +7,11 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.json.JSONException;
 import org.json.JSONObject;
+import utils.Properties;
 
 public class MessageHandlerSubredditData {
 
-    String connectionString = "mongodb://127.0.0.1:27017/";
+    String connectionString = "mongodb://"+Properties.getUrlMongo()+":27017/";
     MongoClient mongoClient;
     MongoDatabase db;
     MongoCollection<Document> subredditDataCollection;

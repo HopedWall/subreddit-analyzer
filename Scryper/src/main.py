@@ -3,6 +3,7 @@ from entities.subreddit import Subreddit
 from threads.subreddit_updater import SubredditUpdater
 from threads.post_downloader import PostDownloader
 from threads.post_updater import PostUpdater
+import os
 
 if __name__ == '__main__':
     print("Start Python Analyzer")

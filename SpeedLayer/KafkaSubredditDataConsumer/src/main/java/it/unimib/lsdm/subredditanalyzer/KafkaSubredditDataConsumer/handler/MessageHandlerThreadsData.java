@@ -3,6 +3,7 @@ package it.unimib.lsdm.subredditanalyzer.KafkaSubredditDataConsumer.handler;
 import com.vader.sentiment.analyzer.SentimentAnalyzer;
 import edu.stanford.nlp.simple.Document;
 import edu.stanford.nlp.simple.Sentence;
+import it.unimib.lsdm.subredditanalyzer.KafkaSubredditDataConsumer.utils.Properties;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
@@ -33,8 +34,9 @@ public class MessageHandlerThreadsData {
     private Set<String> stopWords;
 
     public MessageHandlerThreadsData() throws IOException {
+        String url = Properties.getElasticUrl() + ":9200";
         ClientConfiguration clientConfiguration =
-                ClientConfiguration.builder().connectedTo("localhost:9200").build();
+                ClientConfiguration.builder().connectedTo(url).build();
         System.out.println(clientConfiguration);
         client = RestClients.create(clientConfiguration).rest();
         stopWords = new LinkedHashSet<String>();

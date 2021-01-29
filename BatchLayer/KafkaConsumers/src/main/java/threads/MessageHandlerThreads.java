@@ -10,6 +10,7 @@ import edu.stanford.nlp.simple.*;
 import org.bson.Document;
 import org.json.JSONException;
 import org.json.JSONObject;
+import utils.Properties;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -24,7 +25,7 @@ import java.util.stream.Stream;
 
 public class MessageHandlerThreads {
 
-    String connectionString = "mongodb://127.0.0.1:27017/";
+    String connectionString = "mongodb://"+ Properties.getUrlMongo()+":27017/";
     MongoClient mongoClient;
     MongoDatabase db;
     MongoCollection<Document> postCollection;

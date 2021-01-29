@@ -4,6 +4,7 @@ from entities.redditor import Redditor
 import time
 import json
 from kafka import KafkaProducer
+import os
 
 class PostUpdater(Thread):
     def __init__(self, reddit, subreddit):
@@ -11,11 +12,14 @@ class PostUpdater(Thread):
         self._reddit = reddit
         self._subreddit = subreddit
         self._dead = False
+        self.url = os.getenv('KAFKA_CONTAINER', "localhost")
       
     def run(self):
         while not self._dead:
 
-            producer = KafkaProducer(bootstrap_servers='localhost:9092', key_serializer=lambda k: k.encode('utf-8'), value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+            print("URL:"+self.url+':9092')
+
+            producer = KafkaProducer(bootstrap_servers=self.url+':9092', key_serializer=lambda k: k.encode('utf-8'), value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 
             # Get a copy of posts list 
             posts = self._subreddit.get_posts()

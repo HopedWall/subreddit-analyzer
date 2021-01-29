@@ -8,10 +8,11 @@ import com.mongodb.client.model.Filters;
 import org.bson.Document;
 import org.json.JSONException;
 import org.json.JSONObject;
+import utils.Properties;
 
 public class MessageHandlerUsers {
 
-    String connectionString = "mongodb://127.0.0.1:27017/";
+    String connectionString = "mongodb://"+ Properties.getUrlMongo()+":27017/";
     MongoClient mongoClient;
     MongoDatabase db;
     MongoCollection<Document> usersCollection;
