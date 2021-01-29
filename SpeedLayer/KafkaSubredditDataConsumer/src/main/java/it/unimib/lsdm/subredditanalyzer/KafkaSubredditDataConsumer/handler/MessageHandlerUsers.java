@@ -46,7 +46,7 @@ public class MessageHandlerUsers {
             // Removed and updated illegal fields (has name starts with "_")
             message.remove("type");
             message.remove("_id");
-            message.put("upvotes", message.get("_upvotes"));
+            message.put("upvotes", Integer.parseInt(message.get("_upvotes").toString()));
             message.remove("_upvotes");
             message.put("username", message.get("_username"));
             message.remove("_username");
@@ -68,7 +68,7 @@ public class MessageHandlerUsers {
             GetResponse getResponse = client.get(getRequest, RequestOptions.DEFAULT);
             System.out.println("USER BEFORE UPDATE: " + getResponse.toString());
 
-            UpdateRequest updateRequest = new UpdateRequest(index, key).doc("upvotes", message.get("upvotes"));
+            UpdateRequest updateRequest = new UpdateRequest(index, key).doc("upvotes", Integer.parseInt(message.get("upvotes").toString()));
             UpdateResponse updateResponse = client.update(updateRequest, RequestOptions.DEFAULT);
             System.out.println("RESPONSE status: " + updateResponse.status());
             System.out.println("RESPONSE status: " + updateResponse.getResult());
