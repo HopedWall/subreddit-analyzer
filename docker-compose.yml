@@ -10,8 +10,8 @@ services:
       - "2181:2181"
       - "9092:9092"
     networks:
-      - speed-net
-      - batch-net
+      #- speed-net
+      #- batch-net
       - scryper-net
     restart: unless-stopped
 
@@ -22,7 +22,8 @@ services:
       - "9200:9200"
       - "9300:9300"
     networks: 
-      - elastic-stack-net
+      #- elastic-stack-net
+      - scryper-net
     restart: unless-stopped
     environment:
       discovery.type: single-node
@@ -35,10 +36,11 @@ services:
     ports:
       - "5601:5601"
     networks: 
-      - elastic-stack-net
+      #- elastic-stack-net
+      - scryper-net
     restart: unless-stopped
-    depends_on:
-      - elastic-search
+    #depends_on:
+    #  - elastic-search
     environment:
       ELASTICSEARCH_URL: http://elastic-search:9200
       ELASTICSEARCH_HOSTS: http://elastic-search:9200
@@ -49,7 +51,8 @@ services:
     ports:
       - 27017:27017
     networks:
-      - mongo-net
+      #- mongo-net
+      - scryper-net
     restart: unless-stopped
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
@@ -74,8 +77,9 @@ services:
       context: ./BatchLayer/KafkaConsumers
     container_name: batch-consumer
     networks:
-      - batch-net
-      - mongo-net
+      #- batch-net
+      #- mongo-net
+      - scryper-net
     restart: unless-stopped
     depends_on:
       - kafka
@@ -89,8 +93,9 @@ services:
       context: ./SpeedLayer/KafkaSubredditDataConsumer
     container_name: speed-consumer
     networks:
-      - speed-net
-      - elastic-stack-net
+      #- speed-net
+      #- elastic-stack-net
+      - scryper-net
     restart: unless-stopped
     depends_on:
       - kafka
