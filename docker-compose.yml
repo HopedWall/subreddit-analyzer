@@ -12,7 +12,7 @@ services:
     networks:
       #- speed-net
       #- batch-net
-      - scryper-net
+      - app-net
     restart: unless-stopped
 
   elastic-search:
@@ -23,7 +23,7 @@ services:
       - "9300:9300"
     networks: 
       #- elastic-stack-net
-      - scryper-net
+      - app-net
     restart: unless-stopped
     environment:
       discovery.type: single-node
@@ -37,7 +37,7 @@ services:
       - "5601:5601"
     networks: 
       #- elastic-stack-net
-      - scryper-net
+      - app-net
     restart: unless-stopped
     #depends_on:
     #  - elastic-search
@@ -52,7 +52,7 @@ services:
       - 27017:27017
     networks:
       #- mongo-net
-      - scryper-net
+      - app-net
     restart: unless-stopped
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
@@ -65,7 +65,7 @@ services:
       context: ./Scryper
     container_name: scryper
     networks:
-      - scryper-net
+      - app-net
     restart: unless-stopped
     depends_on:
       - kafka
@@ -79,7 +79,7 @@ services:
     networks:
       #- batch-net
       #- mongo-net
-      - scryper-net
+      - app-net
     restart: unless-stopped
     depends_on:
       - kafka
@@ -95,7 +95,7 @@ services:
     networks:
       #- speed-net
       #- elastic-stack-net
-      - scryper-net
+      - app-net
     restart: unless-stopped
     depends_on:
       - kafka
@@ -105,15 +105,15 @@ services:
       KAFKA_CONTAINER: kafka
 
 networks:
-  elastic-stack-net:
-    driver: bridge
-  mongo-net:
-    driver: bridge
-  speed-net:
-    driver: bridge
-  batch-net:
-    driver: bridge
-  scryper-net:
+  #elastic-stack-net:
+  #  driver: bridge
+  #mongo-net:
+  #  driver: bridge
+  #speed-net:
+  #  driver: bridge
+  #batch-net:
+  #  driver: bridge
+  app-net:
     driver: bridge
 
 volumes:
