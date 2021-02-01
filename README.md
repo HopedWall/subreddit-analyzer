@@ -2,7 +2,7 @@
 A tool for analyzing subreddits, both in real-time (dashboard) and in batch (OLAP).
 
 ## Current progress
-- a Python script to gather data from Reddit has been created (uses PRAW -- https://praw.readthedocs.io/en/latest/)
+- the Python Scryper, which uses PRAW to gather data from Reddit, has been created
 - the Speed Layer, which uses Spring+Elastic Search+Kibana, has been created
 - the Batch Layer, which uses Java+MongoDB+(Tableau), has been created
 
@@ -16,14 +16,14 @@ Allow for up to a minute or so for all the services to be ready. After that, som
 ## Speed Layer
 - Go to http://localhost:5601 (kibana).
 - First import data with correct datetime zone
-    - Go to left option bar > Stack Management > Advanced Settings > Timezone for date formatting > Set to Defaut (browser) > Reload page and check on discover sidebar menu that data are available. 
+    - Go to left option bar > Stack Management > Advanced Settings > Timezone for date formatting > Set to Defaut (browser) > Reload page and check on discover sidebar menu that data is available. 
     - Go to left option bar > Stack Management > Advanced Settings > Timezone for date formatting > Set to UTC.
-- For import kibana objects:
+- For importing kibana objects:
     - Go to left option bar > Stack Management > Advanced Settings > Saved Objects > Import file
-- For visualize imported kibana dashboard:
-    - Go to left option bar > Dashboard > Select imported dashboard to start visualize real-time data.
-    - If data doesn't appear check selected dates at the top rigth of Kibana dahboard
-        - **Note**: It is possibile to incurr in date error before of after changed timezone, dependending of browser default settings. If an error occur in dashboard ("Impossible to convert Browset datetime zone" or stuff like that), or dates are shifted of 1h, go to advanded settings and change datetime zone setted before.   
+- For visualizing the imported kibana dashboard:
+    - Go to left option bar > Dashboard > Select imported dashboard to start visualizing real-time data.
+    - If the data doesn't appear check the selected dates in the upper-right corner of the Kibana dahboard
+        - **Note**: Date errors may occur before or after changing timezones, dependending on the browser default settings. If an error occurs in the dashboard ("Impossible to convert Browser datetime zone" or stuff like that), or if dates are shifted by 1h, go to advanced settings and change the datetime zone as it was before.   
     
 ## Batch Layer
 - Download the MongoDB BI Connector at https://docs.mongodb.com/bi-connector/v2.0/installation/
