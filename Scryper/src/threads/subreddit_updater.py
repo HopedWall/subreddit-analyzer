@@ -13,6 +13,7 @@ class SubredditUpdater(Thread):
         self.url = os.getenv('KAFKA_CONTAINER', "localhost")
       
     def run(self):
+
         while not self._dead:
             subreddit_handle = self._reddit.subreddit(self._subreddit.get_name())
 

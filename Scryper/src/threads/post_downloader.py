@@ -7,6 +7,8 @@ import json
 from kafka import KafkaProducer
 import os
 
+import config
+
 class PostDownloader(Thread):
     def __init__(self, reddit, subreddit):
         Thread.__init__(self)
@@ -15,8 +17,14 @@ class PostDownloader(Thread):
         self._dead = False
         # Fetching variable from ENV
         self.url = os.getenv('KAFKA_CONTAINER', "localhost")
+
       
     def run(self):
+
+        global curr_threads
+        global created_threads
+        global updated_threads
+
         while not self._dead:
             subreddit_handle = self._reddit.subreddit(self._subreddit.get_name())    
             
@@ -49,6 +57,9 @@ class PostDownloader(Thread):
                     print(post.to_dict(postPresent))
                     producer.send('threads', key=str(post.get_id()), value=post.to_dict_new())
 
+                    config.curr_threads += 1
+                    config.created_threads += 1
+
                 else:
                     # Get last post update
                     lastPostUpdate = self._subreddit.get_post(post)
@@ -60,6 +71,8 @@ class PostDownloader(Thread):
                         self._subreddit.update_post(lastPostUpdate, post)
                         # Send updated post to kafka
                         producer.send('threads', key=str(post.get_id()), value=post.to_dict_update())
+
+                        config.updated_threads += 1
 
                 #################################################################################
 
@@ -78,6 +91,9 @@ class PostDownloader(Thread):
                     # Send new user to kafka
                     print(user.to_dict(userPresent))
                     producer.send('users', key=str(user.get_id()), value=user.to_dict_new())
+
+                    config.curr_users += 1
+                    config.created_users += 1
                 else:
                     # Get last user update
                     lastUserUpdate = self._subreddit.get_user(user)
@@ -90,6 +106,8 @@ class PostDownloader(Thread):
                         # Send updated user to kafka
                         print(user.to_dict(userPresent))
                         producer.send('users', key=str(user.get_id()), value=user.to_dict_update())
+
+                        config.updated_users += 1
 
                 time.sleep(1) # 1 second not to get kicked out of the API!
                 
