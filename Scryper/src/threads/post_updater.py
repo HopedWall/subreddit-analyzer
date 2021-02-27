@@ -98,7 +98,7 @@ class PostUpdater(Thread):
                             print(user.to_dict(userPresent))
                             producer.send('users', key=str(user.get_id()), value=user.to_dict_update())
 
-                time.sleep(2)
+                #time.sleep(2)
 
             time.sleep(30)
 

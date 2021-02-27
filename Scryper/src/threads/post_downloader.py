@@ -26,7 +26,7 @@ class PostDownloader(Thread):
 
             # Get the 10 hottest threads in the current subreddit
             # and push them to kafka if necessary
-            for submission in subreddit_handle.hot(limit=10):
+            for submission in subreddit_handle.hot(limit=100):
 
                 ### POST ###
                 # Store post locally
@@ -91,7 +91,7 @@ class PostDownloader(Thread):
                         print(user.to_dict(userPresent))
                         producer.send('users', key=str(user.get_id()), value=user.to_dict_update())
 
-                time.sleep(1) # 2 second not to get kicked out of the API!
+                time.sleep(1) # 1 second not to get kicked out of the API!
                 
             time.sleep(60) # 60 seconds of sleep
 

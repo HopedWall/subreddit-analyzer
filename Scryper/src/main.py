@@ -12,7 +12,7 @@ if __name__ == '__main__':
     reddit = praw.Reddit()
     
     # Set the subreddit to be used
-    subreddit = Subreddit("destinythegame", 0, 0)
+    subreddit = Subreddit("wallstreetbets", 0, 0)
 
     # Download the 10 hottest post on the chosen subreddit
     post_downloader = PostDownloader(reddit, subreddit)

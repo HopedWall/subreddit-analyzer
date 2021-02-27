@@ -51,10 +51,6 @@ class Post:
     def update_comment(self, oldComment, newComment):
         # Removes the OLD version of the comment
         self.delete_comment(oldComment)
-        # Gets the upvotes of the old comment
-        oldUpvotes = oldComment.get_upvotes()
-        # Updates the upvotes of the new comment
-        newComment.add_upvotes(oldUpvotes)
         # Adds the NEW version of the comment
         self.append_comment(newComment)
 

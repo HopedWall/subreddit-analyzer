@@ -7,8 +7,8 @@ class Comment:
         self._author_name = author_name
         self._thread_id = thread_id
     
-    def update_votes(self, upvotes):
-        self._upvotes = upvotes
+    def update_upvotes(self, upvotes):
+        self._upvotes = str(upvotes)
 
     def add_upvotes(self, upvotes):
         self._upvotes = str(int(upvotes) + int(self._upvotes))
