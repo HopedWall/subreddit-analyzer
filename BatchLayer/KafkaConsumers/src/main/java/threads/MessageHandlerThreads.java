@@ -16,12 +16,17 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.nio.file.StandardOpenOption.APPEND;
+import static java.nio.file.StandardOpenOption.CREATE;
 
 public class MessageHandlerThreads {
 
@@ -76,16 +81,16 @@ public class MessageHandlerThreads {
     }
 
 
-    public void processMessage(String key, JSONObject message) throws JSONException, IOException {
+    public void processMessage(String key, JSONObject message, Path filename, long sentTime, long receivedTime) throws JSONException, IOException {
         Document document = Document.parse(message.toString());
         System.out.println("Type: " + message.get("type"));
+
+        long endConsumerProcessing = 0;
+        long endDbOperation = 0;
 
         switch (message.get("type").toString()) {
             case "post-create":
                 if (postCollection.countDocuments(Filters.eq("id", key)) == 0) {
-                    // Removed text field --> not important.
-                    //document.remove("_text");
-                    //document.remove("type");
                     // Added comments field to add embedded comment related to post.
                     document.append("comments", new ArrayList<Document>());
 
@@ -94,7 +99,9 @@ public class MessageHandlerThreads {
                     document.put("polarity", polarity);
 
                     System.out.println(document);
+                    endConsumerProcessing = System.currentTimeMillis();
                     postCollection.insertOne(document);
+                    endDbOperation = System.currentTimeMillis();
                 }
                 break;
             case "comment-create":
@@ -110,7 +117,9 @@ public class MessageHandlerThreads {
                     List<Document> embed = (List<Document>) retrieved.get("comments");
                     System.out.println(retrieved);
                     embed.add(document);
+                    endConsumerProcessing = System.currentTimeMillis();
                     postCollection.findOneAndReplace(Filters.eq("id", key), retrieved);
+                    endDbOperation = System.currentTimeMillis();
                     System.out.println(retrieved);
                 }
                 break;
@@ -127,12 +136,12 @@ public class MessageHandlerThreads {
 
                 Document doc = Document.parse(old.toString());
 
+                endConsumerProcessing = System.currentTimeMillis();
                 postCollection.insertOne(doc);
+                endDbOperation = System.currentTimeMillis();
 
                 System.out.println(doc);
 
-                //postCollection.findOneAndUpdate(Filters.eq("_id", key), Updates.set("_upvotes", message.get("upvotes")));
-                //System.out.println(postCollection.find(Filters.eq("_id", key)).first());
                 break;
             case "comment-update":
                 // Get comments in post
@@ -152,10 +161,29 @@ public class MessageHandlerThreads {
                             });
 
                     post.remove("_id");
+                    endConsumerProcessing = System.currentTimeMillis();
                     postCollection.insertOne(post);
+                    endDbOperation = System.currentTimeMillis();
                     //postCollection.findOneAndReplace(Filters.eq("id", key), post);
                 }
                 break;
         }
+
+        try {
+
+                String finalRow = String.format("%d,%d,%d,%d",
+                        sentTime,
+                        receivedTime,
+                        endConsumerProcessing,
+                        endDbOperation);
+
+                Files.writeString(filename,
+                        finalRow + System.lineSeparator(),
+                        CREATE,APPEND);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
     }
 }

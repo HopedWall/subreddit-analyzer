@@ -10,6 +10,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import utils.Properties;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import static java.nio.file.StandardOpenOption.APPEND;
+import static java.nio.file.StandardOpenOption.CREATE;
+
 public class MessageHandlerUsers {
 
     String connectionString = "mongodb://"+ Properties.getUrlMongo()+":27017/";
@@ -24,27 +30,22 @@ public class MessageHandlerUsers {
         usersCollection = db.getCollection("user_collection");
     }
 
-    public void processMessage(String key, JSONObject message) throws JSONException {
+    public void processMessage(String key, JSONObject message, Path filename, long sentTime, long receivedTime) throws JSONException {
         Document document = Document.parse(message.toString());
         System.out.println("Type: " + message.get("type"));
 
+        long endConsumerProcessing = 0;
+        long endDbOperation = 0;
+
         switch (message.get("type").toString()) {
             case "user-create":
-                //if (usersCollection.countDocuments(Filters.eq("_id", key)) == 0) {
-                //    document.remove("type");
                     System.out.println("DocumentTOINSERT"+document.toString());
+                    endConsumerProcessing = System.currentTimeMillis();
                     usersCollection.insertOne(document);
-                //    System.out.println(document);
-                //}
+                    endDbOperation = System.currentTimeMillis();
                 break;
             case "user-update":
-                //System.out.println(usersCollection.find(Filters.eq("_id", key)).first());
-
-                //usersCollection.insertOne(document);
-
-                //usersCollection.find(Filters.eq("id", key)).first();
                 JSONObject old = new JSONObject(usersCollection.find(Filters.eq("id", key)).first());
-
                 System.out.println("OLD BEFORE"+old);
 
                 old.remove("_id");
@@ -53,11 +54,29 @@ public class MessageHandlerUsers {
 
                 Document doc = Document.parse(old.toString());
 
+                endConsumerProcessing = System.currentTimeMillis();
                 usersCollection.insertOne(doc);
+                endDbOperation = System.currentTimeMillis();
                 System.out.println(old);
                 //System.out.println(usersCollection.find(Filters.eq("_id", key)).first());
                 break;
         }
+
+        try {
+                String finalRow = String.format("%d,%d,%d,%d",
+                        sentTime,
+                        receivedTime,
+                        endConsumerProcessing,
+                        endDbOperation);
+
+                Files.writeString(filename,
+                        finalRow + System.lineSeparator(),
+                        CREATE,APPEND);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
     }
 }
 

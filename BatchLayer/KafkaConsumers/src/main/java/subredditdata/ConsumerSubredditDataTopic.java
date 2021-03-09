@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -17,6 +18,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.TimeZone;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import static java.nio.file.StandardOpenOption.APPEND;
+import static java.nio.file.StandardOpenOption.CREATE;
 
 @Slf4j
 public class ConsumerSubredditDataTopic {
@@ -50,22 +57,38 @@ public class ConsumerSubredditDataTopic {
     public void extractFromKafka() throws JSONException {
         System.out.println("##### CONSUMER ON TOPIC [SUBREDDIT-DATA] STARTED #####");
 
+        Path filename = Path.of("stats-subredditdata.csv");
+
+        // Create file header
+
+        String finalRow = String.format("%s,%s,%s,%s",
+                "sentTime",
+                "receivedTime",
+                "endConsumerProcessing",
+                "endDbOperation");
+
+        try {
+            Files.writeString(filename,
+                    finalRow + System.lineSeparator(),
+                    CREATE,APPEND);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
         //polling
         while (true) {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
             records.forEach( record -> {
-                //logger.info("Key: " + record.key() + ", Value:" + record.value());
-                //logger.info("Partition:" + record.partition() + ",Offset:" + record.offset());
-
-                // Try to print json log.
+                //LocalDateTime receivedTime = LocalDateTime.now();
+                long sentTime = record.timestamp();
+                long receivedTime = System.currentTimeMillis();
                 try {
                     JSONObject message = new JSONObject(record.value());
                     message.put("timestamp",
                             LocalDateTime.ofInstant(Instant.ofEpochMilli(record.timestamp()),
                                     TimeZone.getDefault().toZoneId()).toString());
-                    //logger.info("Key: " + message.get("_id"));
-                    //logger.info("Type: " + message.get("type"));
-                    messageHandler.processMessage(record.key(), message);
+                    messageHandler.processMessage(record.key(), message, filename, sentTime, receivedTime);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

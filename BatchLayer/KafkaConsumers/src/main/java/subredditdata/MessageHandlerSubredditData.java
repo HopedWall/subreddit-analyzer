@@ -9,6 +9,18 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import utils.Properties;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.TimeZone;
+
+import static java.nio.file.StandardOpenOption.APPEND;
+import static java.nio.file.StandardOpenOption.CREATE;
+
 public class MessageHandlerSubredditData {
 
     String connectionString = "mongodb://"+Properties.getUrlMongo()+":27017/";
@@ -18,26 +30,45 @@ public class MessageHandlerSubredditData {
 
 
     public MessageHandlerSubredditData() {
-        //System.out.println(connectionString);
         mongoClient = MongoClients.create(connectionString);
         db = mongoClient.getDatabase("reddit_data");
         subredditDataCollection = db.getCollection("subreddit_data_collection");
     }
 
-    public void processMessage(String key, JSONObject message) throws JSONException {
+    public void processMessage(String key, JSONObject message, Path filename, long sentTime, long receivedTime) throws JSONException {
         Document document = Document.parse(message.toString());
         System.out.println("Type: " + message.get("type"));
-
         System.out.println("INSERT: " + document);
+        long endConsumerProcessing = System.currentTimeMillis();
         subredditDataCollection.insertOne(document);
+        long endDbOperation = System.currentTimeMillis();
 
-/*        if (subredditDataCollection.countDocuments(Filters.eq("type", key)) == 0) {
-            System.out.println("INSERT: " + document);
-            subredditDataCollection.insertOne(document);
-        } else {
-            System.out.println("BEFORE UPDATE: " + subredditDataCollection.find(Filters.eq("type", key)).first());
-            subredditDataCollection.findOneAndUpdate(Filters.eq("type", key), Updates.set("value", message.get("value")));
-            System.out.println("AFTER UPDATE: " + subredditDataCollection.find(Filters.eq("type", key)).first());
-        }*/
+
+        /*
+        // Format dates
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+
+        //String kafkaInsertTimeString = formatter.format((LocalDateTime)message.get("timestamp"));
+        String receivedTimeString = formatter.format(receivedTime);
+        String endConsumerProcessingString = formatter.format(endConsumerProcessing);
+        String endDbOperationString = formatter.format(endDbOperation);
+         */
+
+        try {
+
+            String finalRow = String.format("%d,%d,%d,%d",
+                                            sentTime,
+                                            receivedTime,
+                                            endConsumerProcessing,
+                                            endDbOperation);
+
+            Files.writeString(filename,
+                    finalRow + System.lineSeparator(),
+                    CREATE,APPEND);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 }

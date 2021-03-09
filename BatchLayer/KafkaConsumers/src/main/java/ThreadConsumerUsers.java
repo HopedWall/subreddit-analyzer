@@ -1,10 +1,10 @@
-import users.UsersTopicConsumer;
+import users.ConsumerUsersTopic;
 
 public class ThreadConsumerUsers extends Thread {
     Thread t;
 
     public void run() {
-        UsersTopicConsumer c1 = new UsersTopicConsumer();
+        ConsumerUsersTopic c1 = new ConsumerUsersTopic();
         try {
             c1.extractFromKafka();
         } catch (Exception e) {
