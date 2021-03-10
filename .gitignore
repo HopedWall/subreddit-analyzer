@@ -3,3 +3,6 @@ Scryper/src/entities/__pycache__/
 Scryper/src/threads/__pycache__/
 SpeedLayer/KafkaSubredditDataConsumer/target/
 BatchLayer/KafkaConsumers/target/
+Scryper/stats.txt
+SpeedLayer/*.csv
+BatchLayer/*.csv
