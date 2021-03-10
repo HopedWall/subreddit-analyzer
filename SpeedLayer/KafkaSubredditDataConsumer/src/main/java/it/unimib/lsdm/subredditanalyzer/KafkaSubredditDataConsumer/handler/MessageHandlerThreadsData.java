@@ -150,14 +150,14 @@ public class MessageHandlerThreadsData {
                             endConsumerProcessingTimestamp,
                             endDbOperationTimestamp);
                 } else {
-                    System.out.println("COMMENT DOESN'T EXIST");
+                    System.out.println("POST OF COMMENT DOESN'T EXIST");
                 }
                 break;
             case "post-update":
                 // Get existing post.
                 getRequest.id(key);
                 getResponse = client.get(getRequest, RequestOptions.DEFAULT);
-                System.out.println("POST BEFORE UPDATE: " + getResponse.toString());
+                //System.out.println("POST BEFORE UPDATE: " + getResponse.toString());
 
                 if (getResponse.isExists()) {
                     // Update existing post.
