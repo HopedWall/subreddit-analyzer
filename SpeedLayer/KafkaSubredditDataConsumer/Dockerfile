@@ -1,5 +1,5 @@
 # Build phase.
-FROM maven:3.5-jdk-8 as build
+FROM maven:3.5-jdk-11 as build
 COPY ./ /speed-layer
 WORKDIR /speed-layer
 RUN mvn clean package -Dmaven.test.skip=true

@@ -17,6 +17,10 @@ import org.springframework.data.elasticsearch.client.RestClients;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import static java.nio.file.StandardOpenOption.APPEND;
 
 @Component
 public class MessageHandlerUsers {
@@ -31,19 +35,22 @@ public class MessageHandlerUsers {
         client = RestClients.create(clientConfiguration).rest();
     }
 
-    public void processMessage(String key, JSONObject message) throws JSONException, IOException {
+    public void processMessage(String key, JSONObject message, Path userPathfile,
+                               long receivedByKafkaTimestamp,
+                               long receivedByConsumerTimestamp) throws JSONException, IOException {
+        String msgType = message.get("type").toString();
+
         System.out.println("##### MESSAGE HANDLER #####");
-        System.out.println("Type: " + message.get("type"));
+        System.out.println("Type: " + msgType);
         System.out.println("Message: " + message);
 
+        long endConsumerProcessingTimestamp = 0, endDbOperationTimestamp = 0;
+
         // Eng: new user is cretaed in this analysis, if already exist it will be updated with current values (timestamp, upvotes etc.)
-        // Ita: Non viene fatto il controllo se un utente esiste già, ma viene in ogni caso pushato, questo perhcè ci importa avere le info di un
-        // certo periodo temporale, quindi se già presente il record viene aggiornato con tutti i valori attuali.
         if (message.get("type").equals("user-create")) {
-            System.out.println("New user: " + key);
             IndexRequest indexRequest = new IndexRequest(index);
 
-            // Removed and updated illegal fields (has name starts with "_")
+            // Removed and updated illegal fields (its name starts with "_")
             message.remove("type");
             message.remove("_id");
             message.put("upvotes", Integer.parseInt(message.get("_upvotes").toString()));
@@ -51,31 +58,39 @@ public class MessageHandlerUsers {
             message.put("username", message.get("_username"));
             message.remove("_username");
 
-
             indexRequest.id(key);
             indexRequest.source(message.toString(), XContentType.JSON);
-            System.out.println("Message: " + message.toString());
-            IndexResponse response = client.index(indexRequest, RequestOptions.DEFAULT);
 
-            System.out.println("RESPONSE status: " + response.status());
-            System.out.println("RESPONSE status: " + response.getResult());
-            /*} else {
-                System.out.println("User already exist");
-            }*/
+            endConsumerProcessingTimestamp = System.currentTimeMillis();
+            IndexResponse response = client.index(indexRequest, RequestOptions.DEFAULT);
+            endDbOperationTimestamp = System.currentTimeMillis();
+
+            System.out.println("RESPONSE status: " + response.getResult() + "-" + response.status());
         } else if (message.get("type").equals("user-update")) {
-            GetRequest getRequest = new GetRequest(index);
+            /*GetRequest getRequest = new GetRequest(index);
             getRequest.id(key);
             GetResponse getResponse = client.get(getRequest, RequestOptions.DEFAULT);
-            System.out.println("USER BEFORE UPDATE: " + getResponse.toString());
+            System.out.println("USER BEFORE UPDATE: " + getResponse.toString());*/
 
             UpdateRequest updateRequest = new UpdateRequest(index, key).doc("upvotes", Integer.parseInt(message.get("upvotes").toString()));
-            UpdateResponse updateResponse = client.update(updateRequest, RequestOptions.DEFAULT);
-            System.out.println("RESPONSE status: " + updateResponse.status());
-            System.out.println("RESPONSE status: " + updateResponse.getResult());
 
-            getResponse = client.get(getRequest, RequestOptions.DEFAULT);
-            System.out.println("USER AFTER UPDATE: " + getResponse.toString());
+            endConsumerProcessingTimestamp = System.currentTimeMillis();
+            UpdateResponse updateResponse = client.update(updateRequest, RequestOptions.DEFAULT);
+            endDbOperationTimestamp = System.currentTimeMillis();
+
+            System.out.println("RESPONSE status: " + updateResponse.getResult() + "-" + updateResponse.status());
+
+            /*getResponse = client.get(getRequest, RequestOptions.DEFAULT);
+            System.out.println("USER AFTER UPDATE: " + getResponse.toString());*/
         }
 
+        Files.writeString(userPathfile,
+                String.format("%s,%d,%d,%d,%d",
+                        msgType,
+                        receivedByKafkaTimestamp,
+                        receivedByConsumerTimestamp,
+                        endConsumerProcessingTimestamp,
+                        endDbOperationTimestamp) + System.lineSeparator(),
+                APPEND);
     }
 }

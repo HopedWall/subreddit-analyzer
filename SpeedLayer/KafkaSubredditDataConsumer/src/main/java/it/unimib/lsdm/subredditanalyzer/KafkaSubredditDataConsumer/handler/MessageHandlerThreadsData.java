@@ -22,10 +22,14 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.nio.file.StandardOpenOption.APPEND;
 
 @Component
 public class MessageHandlerThreadsData {
@@ -46,11 +50,27 @@ public class MessageHandlerThreadsData {
         SW.close();
     }
 
-    public void processMessage(String key, JSONObject message) throws JSONException, IOException {
+    private void writeOnFile(Path file, String msgType, long kafkaTime, long consumerTime, long endConsumerTIme, long endDbTime) throws IOException {
+        Files.writeString(file,
+                String.format("%s,%d,%d,%d,%d",
+                        msgType,
+                        kafkaTime,
+                        consumerTime,
+                        endConsumerTIme,
+                        endDbTime) + System.lineSeparator(),
+                APPEND);
+    }
+
+    public void processMessage(String key, JSONObject message, Path threadsPathFile,
+                               long receivedByKafkaTimestamp,
+                               long receivedByConsumerTimestamp) throws JSONException, IOException {
+        String msgType = message.get("type").toString();
+        long endConsumerProcessingTimestamp = 0, endDbOperationTimestamp = 0;
+
         GetRequest getRequest = new GetRequest(index);
         GetResponse getResponse;
         System.out.println("##### MESSAGE HANDLER #####");
-        System.out.println("Type: " + message.get("type"));
+        System.out.println("Type: " + msgType);
         System.out.println("Message: " + message);
 
         switch (message.get("type").toString()) {
@@ -65,8 +85,14 @@ public class MessageHandlerThreadsData {
                 message.remove("_url");
                 message.put("author", message.get("_author"));
                 message.remove("_author");
-                message.put("flairs", message.get("_flairs"));
+
+                if (message.has("_flairs")) {
+                    message.put("flairs", message.get("_flairs"));
+                } else {
+                    message.put("flairs", "");
+                }
                 message.remove("_flairs");
+
                 message.put("upvotes", Integer.parseInt(message.get("_upvotes").toString()));
                 message.remove("_upvotes");
                 message.put("title", message.get("_title"));
@@ -79,37 +105,52 @@ public class MessageHandlerThreadsData {
                 String label = preprocessTextAndSentiment(text);
                 message.put("sentiment", label);
 
-                System.out.println("New post: " + key);
-
                 IndexRequest indexRequest = new IndexRequest(index);
                 indexRequest.id(key);
                 indexRequest.source(message.toString(), XContentType.JSON);
 
-                System.out.println("Message: " + message.toString());
-
+                endConsumerProcessingTimestamp = System.currentTimeMillis();
                 IndexResponse response = client.index(indexRequest, RequestOptions.DEFAULT);
+                endDbOperationTimestamp = System.currentTimeMillis();
 
-                System.out.println("RESPONSE status: " + response.status());
-                System.out.println("RESPONSE status: " + response.getResult());
+                System.out.println("RESPONSE status: " + response.getResult() + "-" + response.status());
+
+                writeOnFile(threadsPathFile,
+                        msgType,
+                        receivedByKafkaTimestamp,
+                        receivedByConsumerTimestamp,
+                        endConsumerProcessingTimestamp,
+                        endDbOperationTimestamp);
+
                 break;
             case "comment-create":
                 getRequest.id(key);
                 getResponse = client.get(getRequest, RequestOptions.DEFAULT);
-                System.out.println("POST BEFORE #COMMENT UPDATE: " + getResponse.toString());
+                //System.out.println("POST BEFORE #COMMENT UPDATE: " + getResponse.toString());
 
                 if (getResponse.isExists()) {
                     int comment_num = Integer.parseInt(getResponse.getSource().get("comment_num").toString()) + 1;
-                    // Update existing post.
+                    // Update existing comment.
                     UpdateRequest updateRequest = new UpdateRequest(index, key).doc("comment_num", comment_num);
-                    UpdateResponse updateResponse = client.update(updateRequest, RequestOptions.DEFAULT);
-                    System.out.println("RESPONSE status: " + updateResponse.status());
-                    System.out.println("RESPONSE status: " + updateResponse.getResult());
 
-                    // Get updated posy.
-                    getResponse = client.get(getRequest, RequestOptions.DEFAULT);
-                    System.out.println("POST AFTER #COMMENT UPDATE: " + getResponse.toString());
+                    endConsumerProcessingTimestamp = System.currentTimeMillis();
+                    UpdateResponse updateResponse = client.update(updateRequest, RequestOptions.DEFAULT);
+                    endDbOperationTimestamp = System.currentTimeMillis();
+
+                    System.out.println("RESPONSE status: " + updateResponse.getResult() + "-" + updateResponse.status());
+
+                    // Get updated post.
+                    /*getResponse = client.get(getRequest, RequestOptions.DEFAULT);
+                    System.out.println("POST AFTER #COMMENT UPDATE: " + getResponse.toString());*/
+
+                    writeOnFile(threadsPathFile,
+                            msgType,
+                            receivedByKafkaTimestamp,
+                            receivedByConsumerTimestamp,
+                            endConsumerProcessingTimestamp,
+                            endDbOperationTimestamp);
                 } else {
-                    System.out.println("POST DOESN'T EXIST");
+                    System.out.println("COMMENT DOESN'T EXIST");
                 }
                 break;
             case "post-update":
@@ -121,13 +162,23 @@ public class MessageHandlerThreadsData {
                 if (getResponse.isExists()) {
                     // Update existing post.
                     UpdateRequest updateRequest = new UpdateRequest(index, key).doc("upvotes", Integer.parseInt(message.get("upvotes").toString()));
-                    UpdateResponse updateResponse = client.update(updateRequest, RequestOptions.DEFAULT);
-                    System.out.println("RESPONSE status: " + updateResponse.status());
-                    System.out.println("RESPONSE status: " + updateResponse.getResult());
 
-                    // Get updated posy.
-                    getResponse = client.get(getRequest, RequestOptions.DEFAULT);
-                    System.out.println("POST AFTER UPDATE: " + getResponse.toString());
+                    endConsumerProcessingTimestamp = System.currentTimeMillis();
+                    UpdateResponse updateResponse = client.update(updateRequest, RequestOptions.DEFAULT);
+                    endDbOperationTimestamp = System.currentTimeMillis();
+
+                    System.out.println("RESPONSE status: " + updateResponse.getResult() + "-" + updateResponse.status());
+
+                    // Get updated post.
+                    /*getResponse = client.get(getRequest, RequestOptions.DEFAULT);
+                    System.out.println("POST AFTER UPDATE: " + getResponse.toString());*/
+
+                    writeOnFile(threadsPathFile,
+                            msgType,
+                            receivedByKafkaTimestamp,
+                            receivedByConsumerTimestamp,
+                            endConsumerProcessingTimestamp,
+                            endDbOperationTimestamp);
                 } else {
                     System.out.println("POST DOESN'T EXIST");
                 }
