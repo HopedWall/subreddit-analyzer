@@ -5,7 +5,7 @@ WORKDIR /speed-layer
 RUN mvn clean package -Dmaven.test.skip=true
 
 # Run | Production phase.
-FROM openjdk:8-jre-alpine
+FROM openjdk:11
 COPY --from=build /speed-layer/target/KafkaSubredditDataConsumer-0.0.1-SNAPSHOT.jar /app/kafka-consumer.jar
 COPY --from=build /speed-layer/utility/stopwords-en.txt /app/utility/stopwords-en.txt
 EXPOSE 8080
