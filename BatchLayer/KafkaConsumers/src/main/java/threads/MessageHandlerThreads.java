@@ -83,6 +83,7 @@ public class MessageHandlerThreads {
 
     public void processMessage(String key, JSONObject message, Path filename, long sentTime, long receivedTime) throws JSONException, IOException {
         Document document = Document.parse(message.toString());
+        String msgType = message.get("type").toString();
         System.out.println("Type: " + message.get("type"));
 
         long endConsumerProcessing = 0;
@@ -171,7 +172,8 @@ public class MessageHandlerThreads {
 
         try {
 
-                String finalRow = String.format("%d,%d,%d,%d",
+                String finalRow = String.format("%s,%d,%d,%d,%d",
+                        msgType,
                         sentTime,
                         receivedTime,
                         endConsumerProcessing,

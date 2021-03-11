@@ -59,7 +59,8 @@ public class ConsumerUsersTopic {
 
         // Create file header
 
-        String finalRow = String.format("%s,%s,%s,%s",
+        String finalRow = String.format("%s,%s,%s,%s,%s",
+                "messageType",
                 "sentTime",
                 "receivedTime",
                 "endConsumerProcessing",
