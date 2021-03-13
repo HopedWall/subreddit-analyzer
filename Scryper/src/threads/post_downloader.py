@@ -17,20 +17,19 @@ class PostDownloader(Thread):
         self._dead = False
         # Fetching variable from ENV
         self.url = os.getenv('KAFKA_CONTAINER', "localhost")
-
       
     def run(self):
-
-        global curr_threads
-        global created_threads
-        global updated_threads
 
         while not self._dead:
             subreddit_handle = self._reddit.subreddit(self._subreddit.get_name())    
             
             print("URL:"+self.url+':9092')
 
-            producer = KafkaProducer(bootstrap_servers=self.url+':9092', key_serializer=lambda k: k.encode('utf-8'), value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+            try:
+                producer = KafkaProducer(bootstrap_servers=self.url+':9092', key_serializer=lambda k: k.encode('utf-8'), value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+            except:
+                self._dead = True
+                continue
 
             # Get the 10 hottest threads in the current subreddit
             # and push them to kafka if necessary

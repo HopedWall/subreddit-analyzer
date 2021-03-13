@@ -22,7 +22,11 @@ class PostUpdater(Thread):
 
             print("URL:"+self.url+':9092')
 
-            producer = KafkaProducer(bootstrap_servers=self.url+':9092', key_serializer=lambda k: k.encode('utf-8'), value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+            try:
+                producer = KafkaProducer(bootstrap_servers=self.url+':9092', key_serializer=lambda k: k.encode('utf-8'), value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+            except:
+                self._dead = True
+                continue
 
             # Get a copy of posts list 
             posts = self._subreddit.get_posts()

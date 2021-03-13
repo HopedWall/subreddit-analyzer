@@ -31,6 +31,16 @@ if __name__ == '__main__':
     subreddit_updater.start()
 
     while(True):
+
+        print("Loop start")
+        print(post_downloader.is_alive())
+        print(post_updater.is_alive())
+        print(subreddit_updater.is_alive())
+
+        if not post_downloader.is_alive() or not post_updater.is_alive() or not subreddit_updater.is_alive():
+            print("Killing scryper...")
+            break
+
         current_time = datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
         with open("stats.txt", 'a+') as f:
             f.write("{},{},{},{},{},{},{},{},{},{}\n".format(current_time, 
