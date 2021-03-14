@@ -108,7 +108,7 @@ class PostDownloader(Thread):
 
                         config.updated_users += 1
 
-                time.sleep(1) # 1 second not to get kicked out of the API!
+                # time.sleep(1) # 1 second not to get kicked out of the API!
                 
             time.sleep(60) # 60 seconds of sleep
 
