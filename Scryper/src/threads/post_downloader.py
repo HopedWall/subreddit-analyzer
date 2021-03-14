@@ -45,7 +45,7 @@ class PostDownloader(Thread):
                     submission.id,
                     submission.url, 
                     submission.author.name, 
-                    submission.link_flair_text, 
+                    submission.link_flair_text if submission.link_flair_text else "", 
                     str(submission.score), 
                     submission.title,
                     submission.selftext)
