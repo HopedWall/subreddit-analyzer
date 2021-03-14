@@ -10,6 +10,11 @@ from datetime import datetime
 import config
 
 if __name__ == '__main__':
+
+    # Necessary to make sure Kafka is running when 
+    # using docker compose
+    time.sleep(60)
+
     print("Start Python Analyzer")
     
     # Uses parameters in praw.ini
