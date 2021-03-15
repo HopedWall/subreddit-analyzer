@@ -37,7 +37,8 @@ public class MessageHandlerUsers {
 
     public void processMessage(String key, JSONObject message, Path userPathfile,
                                long receivedByKafkaTimestamp,
-                               long receivedByConsumerTimestamp) throws JSONException, IOException {
+                               long receivedByConsumerTimestampMillis,
+                               long receivedByConsumerTimestampNanos) throws JSONException, IOException {
         String msgType = message.get("type").toString();
 
         System.out.println("##### MESSAGE HANDLER #####");
@@ -61,9 +62,9 @@ public class MessageHandlerUsers {
             indexRequest.id(key);
             indexRequest.source(message.toString(), XContentType.JSON);
 
-            endConsumerProcessingTimestamp = System.currentTimeMillis();
+            endConsumerProcessingTimestamp = System.nanoTime();
             IndexResponse response = client.index(indexRequest, RequestOptions.DEFAULT);
-            endDbOperationTimestamp = System.currentTimeMillis();
+            endDbOperationTimestamp = System.nanoTime();
 
             System.out.println("RESPONSE status: " + response.getResult() + "-" + response.status());
         } else if (message.get("type").equals("user-update")) {
@@ -74,9 +75,9 @@ public class MessageHandlerUsers {
 
             UpdateRequest updateRequest = new UpdateRequest(index, key).doc("upvotes", Integer.parseInt(message.get("upvotes").toString()));
 
-            endConsumerProcessingTimestamp = System.currentTimeMillis();
+            endConsumerProcessingTimestamp = System.nanoTime();
             UpdateResponse updateResponse = client.update(updateRequest, RequestOptions.DEFAULT);
-            endDbOperationTimestamp = System.currentTimeMillis();
+            endDbOperationTimestamp = System.nanoTime();
 
             System.out.println("RESPONSE status: " + updateResponse.getResult() + "-" + updateResponse.status());
 
@@ -85,10 +86,11 @@ public class MessageHandlerUsers {
         }
 
         Files.writeString(userPathfile,
-                String.format("%s,%d,%d,%d,%d",
+                String.format("%s,%d,%d,%d,%d,%d",
                         msgType,
                         receivedByKafkaTimestamp,
-                        receivedByConsumerTimestamp,
+                        receivedByConsumerTimestampMillis,
+                        receivedByConsumerTimestampNanos,
                         endConsumerProcessingTimestamp,
                         endDbOperationTimestamp) + System.lineSeparator(),
                 APPEND);

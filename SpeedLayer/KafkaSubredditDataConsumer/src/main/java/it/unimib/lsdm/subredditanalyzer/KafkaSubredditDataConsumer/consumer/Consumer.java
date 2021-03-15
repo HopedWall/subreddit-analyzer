@@ -46,12 +46,13 @@ public class Consumer {
         usersPathFile = Path.of("stats-users.csv");
         threadsPathFile = Path.of("stats-threads.csv");
 
-        String headline = String.format("%s,%s,%s,%s,%s",
+        String headline = String.format("%s,%s,%s,%s,%s,%s",
                 "messageType",
-                "sentTime",
-                "receivedTime",
-                "endConsumerProcessing",
-                "endDbOperation");
+                "sentTime-millis",
+                "receivedTime-millis",
+                "receivedTime-nanos",
+                "endConsumerProcessing-nanos",
+                "endDbOperation-nanos");
 
         Files.writeString(subredditDataPathFile, headline + System.lineSeparator(), CREATE);
         Files.writeString(usersPathFile, headline + System.lineSeparator(), CREATE);
@@ -63,7 +64,8 @@ public class Consumer {
                         @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String key,
                         @Header(KafkaHeaders.RECEIVED_TIMESTAMP) long timestamp) throws IOException, JSONException {
 
-        long receivedByConsumerTimestamp = System.currentTimeMillis();
+        long receivedByConsumerTimestampMillis = System.currentTimeMillis();
+        long receivedByConsumerTimestampNanos = System.nanoTime();
 
         System.out.println("##### MESSAGE RECEIVED [SUBREDDIT-DATA] TOPIC #####");
         System.out.println("KEY: " + key);
@@ -77,7 +79,8 @@ public class Consumer {
         );
 
         // Handle message
-        messageHandlerSubredditdata.processMessage(key, jsonMessage, subredditDataPathFile, timestamp, receivedByConsumerTimestamp);
+        messageHandlerSubredditdata.processMessage(key, jsonMessage, subredditDataPathFile, timestamp, 
+                receivedByConsumerTimestampMillis, receivedByConsumerTimestampNanos);
     }
 
     @KafkaListener(topics = "users", groupId = "group_id_users")
@@ -85,7 +88,8 @@ public class Consumer {
                         @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String key,
                         @Header(KafkaHeaders.RECEIVED_TIMESTAMP) long timestamp) throws JSONException, IOException {
 
-        long receivedByConsumerTimestamp = System.currentTimeMillis();
+        long receivedByConsumerTimestampMillis = System.currentTimeMillis();
+        long receivedByConsumerTimestampNanos = System.nanoTime();
 
         System.out.println("##### MESSAGE RECEIVED [USERS] TOPIC #####");
         System.out.println("KEY: " + key);
@@ -100,7 +104,8 @@ public class Consumer {
         );
 
         // Handle message
-        messageHandlerUsers.processMessage(key, jsonMessage, usersPathFile, timestamp, receivedByConsumerTimestamp);
+        messageHandlerUsers.processMessage(key, jsonMessage, usersPathFile, timestamp, 
+                        receivedByConsumerTimestampMillis, receivedByConsumerTimestampNanos);
     }
 
     @KafkaListener(topics = "threads", groupId = "group_id_threads")
@@ -108,7 +113,8 @@ public class Consumer {
                                       @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String key,
                                       @Header(KafkaHeaders.RECEIVED_TIMESTAMP) long timestamp) throws JSONException, IOException {
 
-        long receivedByConsumerTimestamp = System.currentTimeMillis();
+        long receivedByConsumerTimestampMillis = System.currentTimeMillis();
+        long receivedByConsumerTimestampNanos = System.nanoTime();
 
         System.out.println("##### MESSAGE RECEIVED [THREADS] TOPIC #####");
         System.out.println("KEY: " + key);
@@ -123,7 +129,8 @@ public class Consumer {
         );
 
         // Handle message
-        messageHandlerThreads.processMessage(key, jsonMessage, threadsPathFile, timestamp, receivedByConsumerTimestamp);
+        messageHandlerThreads.processMessage(key, jsonMessage, threadsPathFile, timestamp, 
+                        receivedByConsumerTimestampMillis, receivedByConsumerTimestampNanos);
     }
 
 }
