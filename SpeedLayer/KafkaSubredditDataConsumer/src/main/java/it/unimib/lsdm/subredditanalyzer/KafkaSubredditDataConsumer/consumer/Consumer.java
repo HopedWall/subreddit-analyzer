@@ -58,7 +58,7 @@ public class Consumer {
         Files.writeString(threadsPathFile, headline + System.lineSeparator(), CREATE);
     }
 
-    @KafkaListener(topics = "subreddit-data", groupId = "group_id")
+    @KafkaListener(topics = "subreddit-data", groupId = "group_id_subdata")
     public void consumeSubDataTopic(@Payload String message,
                         @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String key,
                         @Header(KafkaHeaders.RECEIVED_TIMESTAMP) long timestamp) throws IOException, JSONException {
@@ -103,7 +103,7 @@ public class Consumer {
         messageHandlerUsers.processMessage(key, jsonMessage, usersPathFile, timestamp, receivedByConsumerTimestamp);
     }
 
-    @KafkaListener(topics = "threads", groupId = "group_id_users")
+    @KafkaListener(topics = "threads", groupId = "group_id_threads")
     public void consumeThreadsDataTopic(@Payload String message,
                                       @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String key,
                                       @Header(KafkaHeaders.RECEIVED_TIMESTAMP) long timestamp) throws JSONException, IOException {

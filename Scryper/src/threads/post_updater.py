@@ -122,7 +122,7 @@ class PostUpdater(Thread):
 
                 #time.sleep(2)
 
-            time.sleep(30)
+            time.sleep(10)
 
     def stop(self):
         self._dead = True
