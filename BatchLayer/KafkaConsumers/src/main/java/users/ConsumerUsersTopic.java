@@ -59,13 +59,12 @@ public class ConsumerUsersTopic {
 
         // Create file header
 
-        String finalRow = String.format("%s,%s,%s,%s,%s,%s",
+        String finalRow = String.format("%s,%s,%s,%s,%s",
                 "messageType",
-                "sentTime-millis",
-                "receivedTime-millis",
-                "receivedTime-nanos",
-                "endConsumerProcessing-nanos",
-                "endDbOperation-nanos");
+                "sentTime",
+                "receivedTime",
+                "endConsumerProcessing",
+                "endDbOperation");
 
         try {
             Files.writeString(filename,
@@ -81,8 +80,7 @@ public class ConsumerUsersTopic {
             records.forEach( record -> {
 
                 long sentTime = record.timestamp();
-                long receivedTimeMillis = System.currentTimeMillis();
-                long receivedTimeNanos = System.nanoTime();
+                long receivedTime = System.currentTimeMillis();
 
                 try {
                     JSONObject message = new JSONObject(record.value());
@@ -100,7 +98,7 @@ public class ConsumerUsersTopic {
 
                     message.put("timestamp", LocalDateTime.ofInstant(Instant.ofEpochMilli(record.timestamp()),
                             TimeZone.getDefault().toZoneId()).toString());
-                    messageHandler.processMessage(record.key(), message, filename, sentTime, receivedTimeMillis, receivedTimeNanos);
+                    messageHandler.processMessage(record.key(), message, filename, sentTime, receivedTime);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

@@ -31,8 +31,7 @@ public class MessageHandlerSubredditData {
     }
 
     public void processMessage(String key, JSONObject message, Path subredditDataPath,
-                               long receivedByKafkaTimestamp, long receivedByConsumerTimestampMillis, 
-                               long receivedByConsumerTimestampNanos) throws JSONException, IOException {
+                               long receivedByKafkaTimestamp, long receivedByConsumerTimestamp) throws JSONException, IOException {
         String msgType = message.get("type").toString();
 
         System.out.println("##### MESSAGE HANDLER #####");
@@ -42,18 +41,17 @@ public class MessageHandlerSubredditData {
         IndexRequest indexRequest = new IndexRequest("subreddit-data-json");
         indexRequest.source(message.toString(), XContentType.JSON);
 
-        long endConsumerProcessingTimestamp = System.nanoTime();
+        long endConsumerProcessingTimestamp = System.currentTimeMillis();
         IndexResponse response = client.index(indexRequest, RequestOptions.DEFAULT);
-        long endDbOperationTimestamp = System.nanoTime();
+        long endDbOperationTimestamp = System.currentTimeMillis();
 
         System.out.println("RESPONSE status: " + response.status());
 
         Files.writeString(subredditDataPath,
-                String.format("%s,%d,%d,%d,%d,%d",
+                String.format("%s,%d,%d,%d,%d",
                         msgType,
                         receivedByKafkaTimestamp,
-                        receivedByConsumerTimestampMillis,
-                        receivedByConsumerTimestampNanos,
+                        receivedByConsumerTimestamp,
                         endConsumerProcessingTimestamp,
                         endDbOperationTimestamp) + System.lineSeparator(),
                 APPEND);

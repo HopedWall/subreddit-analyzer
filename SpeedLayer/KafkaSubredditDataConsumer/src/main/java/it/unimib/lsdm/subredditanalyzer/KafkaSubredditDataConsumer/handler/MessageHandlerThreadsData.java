@@ -50,23 +50,20 @@ public class MessageHandlerThreadsData {
         SW.close();
     }
 
-    private void writeOnFile(Path file, String msgType, long kafkaTime, 
-            long consumerTimeMillis, long consumerTimeNanos, long endConsumerTime, long endDbTime) throws IOException {
+    private void writeOnFile(Path file, String msgType, long kafkaTime, long consumerTime, long endConsumerTIme, long endDbTime) throws IOException {
         Files.writeString(file,
-                String.format("%s,%d,%d,%d,%d,%d",
+                String.format("%s,%d,%d,%d,%d",
                         msgType,
                         kafkaTime,
-                        consumerTimeMillis,
-                        consumerTimeNanos,
-                        endConsumerTime,
+                        consumerTime,
+                        endConsumerTIme,
                         endDbTime) + System.lineSeparator(),
                 APPEND);
     }
 
     public void processMessage(String key, JSONObject message, Path threadsPathFile,
                                long receivedByKafkaTimestamp,
-                               long receivedByConsumerTimestampMillis, 
-                               long receivedByConsumerTimestampNanos) throws JSONException, IOException {
+                               long receivedByConsumerTimestamp) throws JSONException, IOException {
         String msgType = message.get("type").toString();
         long endConsumerProcessingTimestamp = 0, endDbOperationTimestamp = 0;
 
@@ -112,17 +109,16 @@ public class MessageHandlerThreadsData {
                 indexRequest.id(key);
                 indexRequest.source(message.toString(), XContentType.JSON);
 
-                endConsumerProcessingTimestamp = System.nanoTime();
+                endConsumerProcessingTimestamp = System.currentTimeMillis();
                 IndexResponse response = client.index(indexRequest, RequestOptions.DEFAULT);
-                endDbOperationTimestamp = System.nanoTime();
+                endDbOperationTimestamp = System.currentTimeMillis();
 
                 System.out.println("RESPONSE status: " + response.getResult() + "-" + response.status());
 
                 writeOnFile(threadsPathFile,
                         msgType,
                         receivedByKafkaTimestamp,
-                        receivedByConsumerTimestampMillis,
-                        receivedByConsumerTimestampNanos,
+                        receivedByConsumerTimestamp,
                         endConsumerProcessingTimestamp,
                         endDbOperationTimestamp);
 
@@ -137,9 +133,9 @@ public class MessageHandlerThreadsData {
                     // Update existing comment.
                     UpdateRequest updateRequest = new UpdateRequest(index, key).doc("comment_num", comment_num);
 
-                    endConsumerProcessingTimestamp = System.nanoTime();
+                    endConsumerProcessingTimestamp = System.currentTimeMillis();
                     UpdateResponse updateResponse = client.update(updateRequest, RequestOptions.DEFAULT);
-                    endDbOperationTimestamp = System.nanoTime();
+                    endDbOperationTimestamp = System.currentTimeMillis();
 
                     System.out.println("RESPONSE status: " + updateResponse.getResult() + "-" + updateResponse.status());
 
@@ -150,8 +146,7 @@ public class MessageHandlerThreadsData {
                     writeOnFile(threadsPathFile,
                             msgType,
                             receivedByKafkaTimestamp,
-                            receivedByConsumerTimestampMillis,
-                            receivedByConsumerTimestampNanos,
+                            receivedByConsumerTimestamp,
                             endConsumerProcessingTimestamp,
                             endDbOperationTimestamp);
                 } else {
@@ -168,9 +163,9 @@ public class MessageHandlerThreadsData {
                     // Update existing post.
                     UpdateRequest updateRequest = new UpdateRequest(index, key).doc("upvotes", Integer.parseInt(message.get("upvotes").toString()));
 
-                    endConsumerProcessingTimestamp = System.nanoTime();
+                    endConsumerProcessingTimestamp = System.currentTimeMillis();
                     UpdateResponse updateResponse = client.update(updateRequest, RequestOptions.DEFAULT);
-                    endDbOperationTimestamp = System.nanoTime();
+                    endDbOperationTimestamp = System.currentTimeMillis();
 
                     System.out.println("RESPONSE status: " + updateResponse.getResult() + "-" + updateResponse.status());
 
@@ -181,8 +176,7 @@ public class MessageHandlerThreadsData {
                     writeOnFile(threadsPathFile,
                             msgType,
                             receivedByKafkaTimestamp,
-                            receivedByConsumerTimestampMillis,
-                            receivedByConsumerTimestampNanos,
+                            receivedByConsumerTimestamp,
                             endConsumerProcessingTimestamp,
                             endDbOperationTimestamp);
                 } else {
