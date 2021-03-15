@@ -81,7 +81,7 @@ public class MessageHandlerThreads {
     }
 
 
-    public void processMessage(String key, JSONObject message, Path filename, long sentTime, long receivedTime) throws JSONException, IOException {
+    public void processMessage(String key, JSONObject message, Path filename, long sentTime, long receivedTimeMillis, long receivedTimeNanos) throws JSONException, IOException {
         Document document = Document.parse(message.toString());
         String msgType = message.get("type").toString();
         System.out.println("Type: " + message.get("type"));
@@ -100,9 +100,9 @@ public class MessageHandlerThreads {
                     document.put("polarity", polarity);
 
                     System.out.println(document);
-                    endConsumerProcessing = System.currentTimeMillis();
+                    endConsumerProcessing = System.nanoTime();
                     postCollection.insertOne(document);
-                    endDbOperation = System.currentTimeMillis();
+                    endDbOperation = System.nanoTime();
                 }
                 break;
             case "comment-create":
@@ -118,9 +118,9 @@ public class MessageHandlerThreads {
                     List<Document> embed = (List<Document>) retrieved.get("comments");
                     System.out.println(retrieved);
                     embed.add(document);
-                    endConsumerProcessing = System.currentTimeMillis();
+                    endConsumerProcessing = System.nanoTime();
                     postCollection.findOneAndReplace(Filters.eq("id", key), retrieved);
-                    endDbOperation = System.currentTimeMillis();
+                    endDbOperation = System.nanoTime();
                     System.out.println(retrieved);
                 }
                 break;
@@ -137,9 +137,9 @@ public class MessageHandlerThreads {
 
                 Document doc = Document.parse(old.toString());
 
-                endConsumerProcessing = System.currentTimeMillis();
+                endConsumerProcessing = System.nanoTime();
                 postCollection.insertOne(doc);
-                endDbOperation = System.currentTimeMillis();
+                endDbOperation = System.nanoTime();
 
                 System.out.println(doc);
 
@@ -162,9 +162,9 @@ public class MessageHandlerThreads {
                             });
 
                     post.remove("_id");
-                    endConsumerProcessing = System.currentTimeMillis();
+                    endConsumerProcessing = System.nanoTime();
                     postCollection.insertOne(post);
-                    endDbOperation = System.currentTimeMillis();
+                    endDbOperation = System.nanoTime();
                     //postCollection.findOneAndReplace(Filters.eq("id", key), post);
                 }
                 break;
@@ -172,10 +172,11 @@ public class MessageHandlerThreads {
 
         try {
 
-                String finalRow = String.format("%s,%d,%d,%d,%d",
+                String finalRow = String.format("%s,%d,%d,%d,%d,%d",
                         msgType,
                         sentTime,
-                        receivedTime,
+                        receivedTimeMillis,
+                        receivedTimeNanos,
                         endConsumerProcessing,
                         endDbOperation);
 

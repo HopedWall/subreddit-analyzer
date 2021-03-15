@@ -30,7 +30,7 @@ public class MessageHandlerUsers {
         usersCollection = db.getCollection("user_collection");
     }
 
-    public void processMessage(String key, JSONObject message, Path filename, long sentTime, long receivedTime) throws JSONException {
+    public void processMessage(String key, JSONObject message, Path filename, long sentTime, long receivedTimeMillis, long receivedTimeNanos) throws JSONException {
         Document document = Document.parse(message.toString());
         String msgType = message.get("type").toString();
         System.out.println("Type: " + message.get("type"));
@@ -41,9 +41,9 @@ public class MessageHandlerUsers {
         switch (message.get("type").toString()) {
             case "user-create":
                     System.out.println("DocumentTOINSERT"+document.toString());
-                    endConsumerProcessing = System.currentTimeMillis();
+                    endConsumerProcessing = System.nanoTime();
                     usersCollection.insertOne(document);
-                    endDbOperation = System.currentTimeMillis();
+                    endDbOperation = System.nanoTime();
                 break;
             case "user-update":
                 JSONObject old = new JSONObject(usersCollection.find(Filters.eq("id", key)).first());
@@ -55,19 +55,20 @@ public class MessageHandlerUsers {
 
                 Document doc = Document.parse(old.toString());
 
-                endConsumerProcessing = System.currentTimeMillis();
+                endConsumerProcessing = System.nanoTime();
                 usersCollection.insertOne(doc);
-                endDbOperation = System.currentTimeMillis();
-                System.out.println(old);
+                endDbOperation = System.nanoTime();
+                //System.out.println(old);
                 //System.out.println(usersCollection.find(Filters.eq("_id", key)).first());
                 break;
         }
 
         try {
-                String finalRow = String.format("%s,%d,%d,%d,%d",
+                String finalRow = String.format("%s,%d,%d,%d,%d,%d",
                         msgType,
                         sentTime,
-                        receivedTime,
+                        receivedTimeMillis,
+                        receivedTimeNanos,
                         endConsumerProcessing,
                         endDbOperation);
 

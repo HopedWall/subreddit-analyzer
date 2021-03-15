@@ -61,12 +61,13 @@ public class ConsumerSubredditDataTopic {
 
         // Create file header
 
-        String finalRow = String.format("%s,%s,%s,%s,%s",
+        String finalRow = String.format("%s,%s,%s,%s,%s,%s",
                 "messageType",
-                "sentTime",
-                "receivedTime",
-                "endConsumerProcessing",
-                "endDbOperation");
+                "sentTime-millis",
+                "receivedTime-millis",
+                "receivedTime-nanos",
+                "endConsumerProcessing-nanos",
+                "endDbOperation-nanos");
 
         try {
             Files.writeString(filename,
@@ -83,13 +84,14 @@ public class ConsumerSubredditDataTopic {
             records.forEach( record -> {
                 //LocalDateTime receivedTime = LocalDateTime.now();
                 long sentTime = record.timestamp();
-                long receivedTime = System.currentTimeMillis();
+                long receivedTimeMillis = System.currentTimeMillis();
+                long receivedTimeNanos = System.nanoTime();
                 try {
                     JSONObject message = new JSONObject(record.value());
                     message.put("timestamp",
                             LocalDateTime.ofInstant(Instant.ofEpochMilli(record.timestamp()),
                                     TimeZone.getDefault().toZoneId()).toString());
-                    messageHandler.processMessage(record.key(), message, filename, sentTime, receivedTime);
+                    messageHandler.processMessage(record.key(), message, filename, sentTime, receivedTimeMillis, receivedTimeNanos);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

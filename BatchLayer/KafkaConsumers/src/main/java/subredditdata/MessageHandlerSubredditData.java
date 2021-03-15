@@ -35,32 +35,22 @@ public class MessageHandlerSubredditData {
         subredditDataCollection = db.getCollection("subreddit_data_collection");
     }
 
-    public void processMessage(String key, JSONObject message, Path filename, long sentTime, long receivedTime) throws JSONException {
+    public void processMessage(String key, JSONObject message, Path filename, long sentTime, long receivedTimeMillis, long receivedTimeNanos) throws JSONException {
         Document document = Document.parse(message.toString());
         String msgType = message.get("type").toString();
         System.out.println("Type: " + message.get("type"));
         System.out.println("INSERT: " + document);
-        long endConsumerProcessing = System.currentTimeMillis();
+        long endConsumerProcessing = System.nanoTime();
         subredditDataCollection.insertOne(document);
-        long endDbOperation = System.currentTimeMillis();
-
-
-        /*
-        // Format dates
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
-
-        //String kafkaInsertTimeString = formatter.format((LocalDateTime)message.get("timestamp"));
-        String receivedTimeString = formatter.format(receivedTime);
-        String endConsumerProcessingString = formatter.format(endConsumerProcessing);
-        String endDbOperationString = formatter.format(endDbOperation);
-         */
+        long endDbOperation = System.nanoTime();
 
         try {
 
-            String finalRow = String.format("%s,%d,%d,%d,%d",
+            String finalRow = String.format("%s,%d,%d,%d,%d,%d",
                                             msgType,
                                             sentTime,
-                                            receivedTime,
+                                            receivedTimeMillis,
+                                            receivedTimeNanos,
                                             endConsumerProcessing,
                                             endDbOperation);
 
