@@ -1,5 +1,8 @@
 # subreddit-analyzer
-A tool for analyzing subreddits, both in real-time (dashboard) and in batch (OLAP).
+A Lambda architecture for analyzing subreddits, both in real-time (dashboard) and in batch (OLAP).
+The proposed architecture is shown in the following figure.
+
+![Architecture figure](doc/architecture.jpg)
 
 ## Current progress
 - the Python Scryper, which uses PRAW to gather data from Reddit, has been created
